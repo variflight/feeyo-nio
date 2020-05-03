@@ -6,10 +6,6 @@ import java.util.List;
 
 /**
  * Byte string and byte buffer converter
- *
- * @author boyan (boyan@alibaba-inc.com)
- *
- * 2018-May-08 2:38:42 PM
  */
 public class ZeroByteStringHelper {
 
@@ -49,9 +45,9 @@ public class ZeroByteStringHelper {
         final BytesCarrier carrier = new BytesCarrier();
         try {
             byteString.writeTo(carrier);
-            if (carrier.isValid()) {
+            if (carrier.isValid()) 
                 return carrier.getValue();
-            }
+            //
         } catch (final IOException ignored) {
             // ignored
         }
@@ -85,13 +81,12 @@ public class ZeroByteStringHelper {
      */
     public static ByteString concatenate(final List<ByteBuffer> byteBuffers) {
         final int size = byteBuffers.size();
-        if (size == 0) {
+        if (size == 0) 
             return null;
-        }
-        if (size == 1) {
+        //
+        if (size == 1) 
             return wrap(byteBuffers.get(0));
-        }
-
+        //
         ByteString left = null;
         for (final ByteBuffer buf : byteBuffers) {
             if (buf.remaining() > 0) {
