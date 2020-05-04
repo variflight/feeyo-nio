@@ -1,10 +1,7 @@
 package com.feeyo.net.codec.mqtt;
 
-/**
- * Variable header of {@link ConnectMessage}
- */
 public final class ConnAckVariableHeader {
-
+	//
     private final ConnectReturnCode connectReturnCode;
 
     private final boolean sessionPresent;

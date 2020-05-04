@@ -6,8 +6,7 @@ package com.feeyo.net.codec.mqtt;
  */
 public final class SubscribeMessage extends Message {
 
-	public SubscribeMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader,
-			SubscribePayload payload) {
+	public SubscribeMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader, SubscribePayload payload) {
 		super(fixedHeader, variableHeader, payload);
 	}
 

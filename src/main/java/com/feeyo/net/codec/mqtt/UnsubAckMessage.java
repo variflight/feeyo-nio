@@ -5,12 +5,12 @@ package com.feeyo.net.codec.mqtt;
  */
 public final class UnsubAckMessage extends Message {
 
-    public UnsubAckMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader) {
-        super(fixedHeader, variableHeader, null);
-    }
+	public UnsubAckMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader) {
+		super(fixedHeader, variableHeader, null);
+	}
 
-    @Override
-    public MessageIdVariableHeader variableHeader() {
-        return (MessageIdVariableHeader) super.variableHeader();
-    }
+	@Override
+	public MessageIdVariableHeader variableHeader() {
+		return (MessageIdVariableHeader) super.variableHeader();
+	}
 }

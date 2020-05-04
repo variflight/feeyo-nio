@@ -1,8 +1,5 @@
 package com.feeyo.net.codec.mqtt;
 
-/**
- * Variable Header of the {@link PublishMessage}
- */
 public final class PublishVariableHeader {
 
     private final String topicName;

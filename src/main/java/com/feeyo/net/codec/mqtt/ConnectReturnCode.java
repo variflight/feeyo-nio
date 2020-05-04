@@ -4,9 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Return Code of {@link ConnAckMessage}
- */
+//
 public enum ConnectReturnCode {
 	
     CONNECTION_ACCEPTED((byte) 0x00),

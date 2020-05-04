@@ -5,8 +5,7 @@ package com.feeyo.net.codec.mqtt;
  */
 public final class ConnectMessage extends Message {
 
-	public ConnectMessage(FixedHeader fixedHeader, ConnectVariableHeader variableHeader,
-			ConnectPayload payload) {
+	public ConnectMessage(FixedHeader fixedHeader, ConnectVariableHeader variableHeader, ConnectPayload payload) {
 		super(fixedHeader, variableHeader, payload);
 	}
 

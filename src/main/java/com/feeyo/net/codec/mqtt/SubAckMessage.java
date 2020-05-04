@@ -5,8 +5,7 @@ package com.feeyo.net.codec.mqtt;
  */
 public final class SubAckMessage extends Message {
 
-	public SubAckMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader,
-			SubAckPayload payload) {
+	public SubAckMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader, SubAckPayload payload) {
 		super(fixedHeader, variableHeader, payload);
 	}
 

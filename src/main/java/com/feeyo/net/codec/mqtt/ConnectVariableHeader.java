@@ -1,8 +1,5 @@
 package com.feeyo.net.codec.mqtt;
 
-/**
- * Variable Header for the {@link ConnectMessage}
- */
 public final class ConnectVariableHeader {
 
     private final String name;				// 

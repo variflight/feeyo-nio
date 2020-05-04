@@ -2,9 +2,6 @@ package com.feeyo.net.codec.mqtt;
 
 import java.util.Arrays;
 
-/**
- * Payload of {@link ConnectMessage}
- */
 public final class ConnectPayload {
 
     private final String clientIdentifier;

@@ -12,18 +12,14 @@ public final class FixedHeader {
     private final boolean isRetain;
     private final int remainingLength;
 
-    public FixedHeader(
-            MessageType messageType,
-            boolean isDup,
-            MqttQoS qosLevel,
-            boolean isRetain,
-            int remainingLength) {
-        this.messageType = messageType;
-        this.isDup = isDup;
-        this.qosLevel = qosLevel;
-        this.isRetain = isRetain;
-        this.remainingLength = remainingLength;
-    }
+	public FixedHeader(MessageType messageType, boolean isDup, MqttQoS qosLevel, boolean isRetain,
+			int remainingLength) {
+		this.messageType = messageType;
+		this.isDup = isDup;
+		this.qosLevel = qosLevel;
+		this.isRetain = isRetain;
+		this.remainingLength = remainingLength;
+	}
 
     public MessageType messageType() {
         return messageType;
