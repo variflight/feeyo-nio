@@ -4,10 +4,10 @@ package com.feeyo.net.codec.mqtt;
  * See <a href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html#subscribe">
  *     MQTTV3.1/subscribe</a>
  */
-public final class MqttSubscribeMessage extends Message {
+public final class SubscribeMessage extends Message {
 
-	public MqttSubscribeMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader,
-			MqttSubscribePayload payload) {
+	public SubscribeMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader,
+			SubscribePayload payload) {
 		super(fixedHeader, variableHeader, payload);
 	}
 
@@ -17,7 +17,7 @@ public final class MqttSubscribeMessage extends Message {
 	}
 
 	@Override
-	public MqttSubscribePayload payload() {
-		return (MqttSubscribePayload) super.payload();
+	public SubscribePayload payload() {
+		return (SubscribePayload) super.payload();
 	}
 }

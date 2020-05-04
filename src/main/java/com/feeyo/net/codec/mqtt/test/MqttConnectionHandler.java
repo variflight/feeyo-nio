@@ -7,24 +7,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.feeyo.net.codec.UnknownProtocolException;
-import com.feeyo.net.codec.mqtt.MqttConnAckMessage;
-import com.feeyo.net.codec.mqtt.MqttConnAckVariableHeader;
-import com.feeyo.net.codec.mqtt.MqttConnectMessage;
-import com.feeyo.net.codec.mqtt.MqttConnectPayload;
-import com.feeyo.net.codec.mqtt.MqttConnectReturnCode;
+import com.feeyo.net.codec.mqtt.ConnAckMessage;
+import com.feeyo.net.codec.mqtt.ConnAckVariableHeader;
+import com.feeyo.net.codec.mqtt.ConnectMessage;
+import com.feeyo.net.codec.mqtt.ConnectPayload;
+import com.feeyo.net.codec.mqtt.ConnectReturnCode;
 import com.feeyo.net.codec.mqtt.MqttDecoder;
 import com.feeyo.net.codec.mqtt.FixedHeader;
 import com.feeyo.net.codec.mqtt.Message;
 import com.feeyo.net.codec.mqtt.MessageIdVariableHeader;
 import com.feeyo.net.codec.mqtt.MessageType;
-import com.feeyo.net.codec.mqtt.MqttPublishMessage;
+import com.feeyo.net.codec.mqtt.PublishMessage;
 import com.feeyo.net.codec.mqtt.MqttQoS;
-import com.feeyo.net.codec.mqtt.MqttSubscribeMessage;
-import com.feeyo.net.codec.mqtt.MqttUnsubscribeMessage;
+import com.feeyo.net.codec.mqtt.SubscribeMessage;
+import com.feeyo.net.codec.mqtt.UnsubscribeMessage;
 import com.feeyo.net.codec.mqtt.MqttVersion;
 import com.feeyo.net.nio.NIOHandler;
 
-import static com.feeyo.net.codec.mqtt.MqttConnectReturnCode.*;
+import static com.feeyo.net.codec.mqtt.ConnectReturnCode.*;
 import static com.feeyo.net.codec.mqtt.MessageIdVariableHeader.from;
 import static com.feeyo.net.codec.mqtt.MqttQoS.*;
 
@@ -72,16 +72,16 @@ public class MqttConnectionHandler implements NIOHandler<MqttConnection> {
 
 		switch (messageType) {
 		case CONNECT:
-			processConnect(con, (MqttConnectMessage) msg);
+			processConnect(con, (ConnectMessage) msg);
 			break;
 		case SUBSCRIBE:
-			processSubscribe(con, (MqttSubscribeMessage) msg);
+			processSubscribe(con, (SubscribeMessage) msg);
 			break;
 		case UNSUBSCRIBE:
-			processUnsubscribe(con, (MqttUnsubscribeMessage) msg);
+			processUnsubscribe(con, (UnsubscribeMessage) msg);
 			break;
 		case PUBLISH:
-			processPublish(con, (MqttPublishMessage) msg);
+			processPublish(con, (PublishMessage) msg);
 			break;
 		case PUBREC:
 			processPubRec(con, msg);
@@ -110,9 +110,9 @@ public class MqttConnectionHandler implements NIOHandler<MqttConnection> {
 		}
 	}
 
-	private void processConnect(MqttConnection connection, MqttConnectMessage msg) {
+	private void processConnect(MqttConnection connection, ConnectMessage msg) {
 		//
-		MqttConnectPayload payload = msg.payload();
+		ConnectPayload payload = msg.payload();
 		String clientId = payload.clientIdentifier();
 		final String username = payload.userName();
 		
@@ -137,15 +137,15 @@ public class MqttConnectionHandler implements NIOHandler<MqttConnection> {
 		
 	}
 	
-	private void processSubscribe(MqttConnection connection, MqttSubscribeMessage msg) {
+	private void processSubscribe(MqttConnection connection, SubscribeMessage msg) {
 		//
 	}
 	
-	private void processUnsubscribe(MqttConnection connection, MqttUnsubscribeMessage msg) {
+	private void processUnsubscribe(MqttConnection connection, UnsubscribeMessage msg) {
 		List<String> topics = msg.payload().topics();
 	}
 	
-	private  void processPublish(MqttConnection connection, MqttPublishMessage msg) {
+	private  void processPublish(MqttConnection connection, PublishMessage msg) {
         final MqttQoS qos = msg.fixedHeader().qosLevel();
 	}
 	
@@ -169,19 +169,19 @@ public class MqttConnectionHandler implements NIOHandler<MqttConnection> {
 		final int messageId = ((MessageIdVariableHeader) msg.variableHeader()).messageId();
 	}
 	
-	private boolean isNotProtocolVersion(MqttConnectMessage msg, MqttVersion version) {
+	private boolean isNotProtocolVersion(ConnectMessage msg, MqttVersion version) {
 		return msg.variableHeader().version() != version.protocolLevel();
 	}
 	
-	private void abortConnection(MqttConnection connection, MqttConnectReturnCode returnCode) {
-        MqttConnAckMessage badProto = connAck(returnCode, false);
+	private void abortConnection(MqttConnection connection, ConnectReturnCode returnCode) {
+        ConnAckMessage badProto = connAck(returnCode, false);
         connection.sendAndClose( badProto );
     }
 
-    private MqttConnAckMessage connAck(MqttConnectReturnCode returnCode, boolean sessionPresent) {;
-        return new MqttConnAckMessage( //
+    private ConnAckMessage connAck(ConnectReturnCode returnCode, boolean sessionPresent) {;
+        return new ConnAckMessage( //
         		new FixedHeader(MessageType.CONNACK, false, MqttQoS.AT_MOST_ONCE,  false, 0),  //
-        		new MqttConnAckVariableHeader(returnCode, sessionPresent));
+        		new ConnAckVariableHeader(returnCode, sessionPresent));
     }
 
 }

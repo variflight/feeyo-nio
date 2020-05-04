@@ -2,14 +2,14 @@ package com.feeyo.net.codec.mqtt;
 
 /**
  * Contains a topic name and Qos Level.
- * This is part of the {@link MqttSubscribePayload}
+ * This is part of the {@link SubscribePayload}
  */
-public final class MqttTopicSubscription {
+public final class TopicSubscription {
 
     private final String topicFilter;
     private final MqttQoS qualityOfService;
 
-    public MqttTopicSubscription(String topicFilter, MqttQoS qualityOfService) {
+    public TopicSubscription(String topicFilter, MqttQoS qualityOfService) {
         this.topicFilter = topicFilter;
         this.qualityOfService = qualityOfService;
     }

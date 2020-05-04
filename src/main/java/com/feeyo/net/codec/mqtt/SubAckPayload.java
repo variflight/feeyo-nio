@@ -6,13 +6,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Payload of the {@link MqttSubAckMessage}
+ * Payload of the {@link SubAckMessage}
  */
-public class MqttSubAckPayload {
+public class SubAckPayload {
 
     private final List<Integer> grantedQoSLevels;
 
-    public MqttSubAckPayload(int... grantedQoSLevels) {
+    public SubAckPayload(int... grantedQoSLevels) {
         if (grantedQoSLevels == null) {
             throw new NullPointerException("grantedQoSLevels");
         }
@@ -24,7 +24,7 @@ public class MqttSubAckPayload {
         this.grantedQoSLevels = Collections.unmodifiableList(list);
     }
 
-    public MqttSubAckPayload(Iterable<Integer> grantedQoSLevels) {
+    public SubAckPayload(Iterable<Integer> grantedQoSLevels) {
         if (grantedQoSLevels == null) {
             throw new NullPointerException("grantedQoSLevels");
         }

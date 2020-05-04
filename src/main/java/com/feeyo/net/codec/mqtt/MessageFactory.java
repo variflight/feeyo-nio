@@ -4,37 +4,37 @@ package com.feeyo.net.codec.mqtt;
  * Utility class with factory methods to create different types of MQTT
  * messages.
  */
-public final class MqttMessageFactory {
+public final class MessageFactory {
 
 	public static Message newMessage(FixedHeader fixedHeader, Object variableHeader, Object payload) {
 		switch (fixedHeader.messageType()) {
 		case CONNECT:
-			return new MqttConnectMessage(fixedHeader, (MqttConnectVariableHeader) variableHeader,
-					(MqttConnectPayload) payload);
+			return new ConnectMessage(fixedHeader, (ConnectVariableHeader) variableHeader,
+					(ConnectPayload) payload);
 
 		case CONNACK:
-			return new MqttConnAckMessage(fixedHeader, (MqttConnAckVariableHeader) variableHeader);
+			return new ConnAckMessage(fixedHeader, (ConnAckVariableHeader) variableHeader);
 
 		case SUBSCRIBE:
-			return new MqttSubscribeMessage(fixedHeader, (MessageIdVariableHeader) variableHeader,
-					(MqttSubscribePayload) payload);
+			return new SubscribeMessage(fixedHeader, (MessageIdVariableHeader) variableHeader,
+					(SubscribePayload) payload);
 
 		case SUBACK:
-			return new MqttSubAckMessage(fixedHeader, (MessageIdVariableHeader) variableHeader,
-					(MqttSubAckPayload) payload);
+			return new SubAckMessage(fixedHeader, (MessageIdVariableHeader) variableHeader,
+					(SubAckPayload) payload);
 
 		case UNSUBACK:
-			return new MqttUnsubAckMessage(fixedHeader, (MessageIdVariableHeader) variableHeader);
+			return new UnsubAckMessage(fixedHeader, (MessageIdVariableHeader) variableHeader);
 
 		case UNSUBSCRIBE:
-			return new MqttUnsubscribeMessage(fixedHeader, (MessageIdVariableHeader) variableHeader,
-					(MqttUnsubscribePayload) payload);
+			return new UnsubscribeMessage(fixedHeader, (MessageIdVariableHeader) variableHeader,
+					(UnsubscribePayload) payload);
 
 		case PUBLISH:
-			return new MqttPublishMessage(fixedHeader, (MqttPublishVariableHeader) variableHeader, (byte[]) payload);
+			return new PublishMessage(fixedHeader, (PublishVariableHeader) variableHeader, (byte[]) payload);
 
 		case PUBACK:
-			return new MqttPubAckMessage(fixedHeader, (MessageIdVariableHeader) variableHeader);
+			return new PubAckMessage(fixedHeader, (MessageIdVariableHeader) variableHeader);
 		case PUBREC:
 		case PUBREL:
 		case PUBCOMP:
@@ -58,6 +58,6 @@ public final class MqttMessageFactory {
 		return new Message(fixedHeader, variableHeader, null, cause);
 	}
 
-	private MqttMessageFactory() {
+	private MessageFactory() {
 	}
 }

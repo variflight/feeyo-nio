@@ -5,13 +5,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Payload of the {@link MqttUnsubscribeMessage}
+ * Payload of the {@link UnsubscribeMessage}
  */
-public final class MqttUnsubscribePayload {
+public final class UnsubscribePayload {
 
     private final List<String> topics;
 
-    public MqttUnsubscribePayload(List<String> topics) {
+    public UnsubscribePayload(List<String> topics) {
         this.topics = Collections.unmodifiableList(topics);
     }
 

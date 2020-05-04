@@ -3,9 +3,9 @@ package com.feeyo.net.codec.mqtt;
 import java.util.Arrays;
 
 /**
- * Payload of {@link MqttConnectMessage}
+ * Payload of {@link ConnectMessage}
  */
-public final class MqttConnectPayload {
+public final class ConnectPayload {
 
     private final String clientIdentifier;
     private final String willTopic;
@@ -13,7 +13,7 @@ public final class MqttConnectPayload {
     private final String userName;
     private final byte[] password;
 
-    public MqttConnectPayload(
+    public ConnectPayload(
             String clientIdentifier,
             String willTopic,
             byte[] willMessage,

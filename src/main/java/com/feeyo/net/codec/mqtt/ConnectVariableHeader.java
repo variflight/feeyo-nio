@@ -1,9 +1,9 @@
 package com.feeyo.net.codec.mqtt;
 
 /**
- * Variable Header for the {@link MqttConnectMessage}
+ * Variable Header for the {@link ConnectMessage}
  */
-public final class MqttConnectVariableHeader {
+public final class ConnectVariableHeader {
 
     private final String name;				// 
     private final int version;
@@ -15,7 +15,7 @@ public final class MqttConnectVariableHeader {
     private final boolean isCleanSession;
     private final int keepAliveTimeSeconds;
 
-    public MqttConnectVariableHeader(
+    public ConnectVariableHeader(
             String name,
             int version,
             boolean hasUserName,

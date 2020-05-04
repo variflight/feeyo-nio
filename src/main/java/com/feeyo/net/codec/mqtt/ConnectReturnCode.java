@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Return Code of {@link MqttConnAckMessage}
+ * Return Code of {@link ConnAckMessage}
  */
-public enum MqttConnectReturnCode {
+public enum ConnectReturnCode {
 	
     CONNECTION_ACCEPTED((byte) 0x00),
     CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION((byte) 0X01),
@@ -16,11 +16,11 @@ public enum MqttConnectReturnCode {
     CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD((byte) 0x04),
     CONNECTION_REFUSED_NOT_AUTHORIZED((byte) 0x05);
 
-    private static final Map<Byte, MqttConnectReturnCode> VALUE_TO_CODE_MAP;
+    private static final Map<Byte, ConnectReturnCode> VALUE_TO_CODE_MAP;
 
 	static {
-		final Map<Byte, MqttConnectReturnCode> valueMap = new HashMap<Byte, MqttConnectReturnCode>();
-		for (MqttConnectReturnCode code : values())
+		final Map<Byte, ConnectReturnCode> valueMap = new HashMap<Byte, ConnectReturnCode>();
+		for (ConnectReturnCode code : values())
 			valueMap.put(code.byteValue, code);
 		//
 		VALUE_TO_CODE_MAP = Collections.unmodifiableMap(valueMap);
@@ -28,7 +28,7 @@ public enum MqttConnectReturnCode {
 
 	private final byte byteValue;
 
-	MqttConnectReturnCode(byte byteValue) {
+	ConnectReturnCode(byte byteValue) {
 		this.byteValue = byteValue;
 	}
 
@@ -36,7 +36,7 @@ public enum MqttConnectReturnCode {
 		return byteValue;
 	}
 
-	public static MqttConnectReturnCode valueOf(byte b) {
+	public static ConnectReturnCode valueOf(byte b) {
 		if (VALUE_TO_CODE_MAP.containsKey(b))
 			return VALUE_TO_CODE_MAP.get(b);
 		//

@@ -1,14 +1,14 @@
 package com.feeyo.net.codec.mqtt;
 
 /**
- * Variable Header of the {@link MqttPublishMessage}
+ * Variable Header of the {@link PublishMessage}
  */
-public final class MqttPublishVariableHeader {
+public final class PublishVariableHeader {
 
     private final String topicName;
     private final int packetId;
 
-    public MqttPublishVariableHeader(String topicName, int packetId) {
+    public PublishVariableHeader(String topicName, int packetId) {
         this.topicName = topicName;
         this.packetId = packetId;
     }

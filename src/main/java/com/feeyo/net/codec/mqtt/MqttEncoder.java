@@ -32,22 +32,22 @@ public final class MqttEncoder {
 
         switch (message.fixedHeader().messageType()) {
             case CONNECT:
-                return encodeConnectMessage( (MqttConnectMessage) message);
+                return encodeConnectMessage( (ConnectMessage) message);
 
             case CONNACK:
-                return encodeConnAckMessage((MqttConnAckMessage) message);
+                return encodeConnAckMessage((ConnAckMessage) message);
 
             case PUBLISH:
-                return encodePublishMessage((MqttPublishMessage) message);
+                return encodePublishMessage((PublishMessage) message);
 
             case SUBSCRIBE:
-                return encodeSubscribeMessage((MqttSubscribeMessage) message);
+                return encodeSubscribeMessage((SubscribeMessage) message);
 
             case UNSUBSCRIBE:
-                return encodeUnsubscribeMessage((MqttUnsubscribeMessage) message);
+                return encodeUnsubscribeMessage((UnsubscribeMessage) message);
 
             case SUBACK:
-                return encodeSubAckMessage((MqttSubAckMessage) message);
+                return encodeSubAckMessage((SubAckMessage) message);
 
             case UNSUBACK:
             case PUBACK:
@@ -68,12 +68,12 @@ public final class MqttEncoder {
     }
 
     private static ByteBuffer encodeConnectMessage(
-            MqttConnectMessage message) throws UnknownProtocolException {
+            ConnectMessage message) throws UnknownProtocolException {
         int payloadBufferSize = 0;
 
         FixedHeader mqttFixedHeader = message.fixedHeader();
-        MqttConnectVariableHeader variableHeader = message.variableHeader();
-        MqttConnectPayload payload = message.payload();
+        ConnectVariableHeader variableHeader = message.variableHeader();
+        ConnectPayload payload = message.payload();
         MqttVersion mqttVersion = MqttVersion.fromProtocolNameAndLevel(variableHeader.name(),
                 (byte) variableHeader.version());
 
@@ -85,7 +85,7 @@ public final class MqttEncoder {
         // Client id
         String clientIdentifier = payload.clientIdentifier();
         if (!isValidClientId(mqttVersion, clientIdentifier)) {
-            throw new MqttIdentifierRejectedException("invalid clientIdentifier: " + clientIdentifier);
+            throw new IdentifierRejectedException("invalid clientIdentifier: " + clientIdentifier);
         }
         byte[] clientIdentifierBytes = encodeStringUtf8(clientIdentifier);
         payloadBufferSize += 2 + clientIdentifierBytes.length;
@@ -147,7 +147,7 @@ public final class MqttEncoder {
         return buf;
     }
 
-    private static int getConnVariableHeaderFlag(MqttConnectVariableHeader variableHeader) {
+    private static int getConnVariableHeaderFlag(ConnectVariableHeader variableHeader) {
         int flagByte = 0;
         if (variableHeader.hasUserName()) {
             flagByte |= 0x80;
@@ -169,7 +169,7 @@ public final class MqttEncoder {
     }
 
     private static ByteBuffer encodeConnAckMessage(
-            MqttConnAckMessage message) {
+            ConnAckMessage message) {
     	ByteBuffer buf = ByteBuffer.allocate(4);
         buf.put((byte) getFixedHeaderByte1(message.fixedHeader()));
         buf.put((byte) 2);
@@ -180,15 +180,15 @@ public final class MqttEncoder {
     }
 
     private static ByteBuffer encodeSubscribeMessage(
-            MqttSubscribeMessage message) {
+            SubscribeMessage message) {
         int variableHeaderBufferSize = 2;
         int payloadBufferSize = 0;
 
         FixedHeader mqttFixedHeader = message.fixedHeader();
         MessageIdVariableHeader variableHeader = message.variableHeader();
-        MqttSubscribePayload payload = message.payload();
+        SubscribePayload payload = message.payload();
 
-        for (MqttTopicSubscription topic : payload.topicSubscriptions()) {
+        for (TopicSubscription topic : payload.topicSubscriptions()) {
             String topicName = topic.topicName();
             byte[] topicNameBytes = encodeStringUtf8(topicName);
             payloadBufferSize += 2 + topicNameBytes.length;
@@ -207,7 +207,7 @@ public final class MqttEncoder {
         buf.putShort((short) messageId);
 
         // Payload
-        for (MqttTopicSubscription topic : payload.topicSubscriptions()) {
+        for (TopicSubscription topic : payload.topicSubscriptions()) {
             String topicName = topic.topicName();
             byte[] topicNameBytes = encodeStringUtf8(topicName);
             buf.putShort((short) topicNameBytes.length);
@@ -219,14 +219,14 @@ public final class MqttEncoder {
     }
 
     private static ByteBuffer encodeUnsubscribeMessage(
-            MqttUnsubscribeMessage message) {
+            UnsubscribeMessage message) {
     	
         int variableHeaderBufferSize = 2;
         int payloadBufferSize = 0;
 
         FixedHeader mqttFixedHeader = message.fixedHeader();
         MessageIdVariableHeader variableHeader = message.variableHeader();
-        MqttUnsubscribePayload payload = message.payload();
+        UnsubscribePayload payload = message.payload();
 
         for (String topicName : payload.topics()) {
             byte[] topicNameBytes = encodeStringUtf8(topicName);
@@ -255,7 +255,7 @@ public final class MqttEncoder {
     }
 
     private static ByteBuffer encodeSubAckMessage(
-            MqttSubAckMessage message) {
+            SubAckMessage message) {
         int variableHeaderBufferSize = 2;
         int payloadBufferSize = message.payload().grantedQoSLevels().size();
         int variablePartSize = variableHeaderBufferSize + payloadBufferSize;
@@ -272,10 +272,10 @@ public final class MqttEncoder {
     }
 
     private static ByteBuffer encodePublishMessage(
-            MqttPublishMessage message) {
+            PublishMessage message) {
     	//
         FixedHeader mqttFixedHeader = message.fixedHeader();
-        MqttPublishVariableHeader variableHeader = message.variableHeader();
+        PublishVariableHeader variableHeader = message.variableHeader();
         //
         byte[] payload = message.payload();
         String topicName = variableHeader.topicName();

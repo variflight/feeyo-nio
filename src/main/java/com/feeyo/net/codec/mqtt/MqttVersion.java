@@ -31,17 +31,17 @@ public enum MqttVersion {
 	}
 
 	public static MqttVersion fromProtocolNameAndLevel(String protocolName, byte protocolLevel)
-			throws MqttUnacceptableProtocolVersionException {
+			throws UnacceptableProtocolVersionException {
 		//
 		for (MqttVersion mv : values()) {
 			if (mv.name.equals(protocolName)) {
 				if (mv.level == protocolLevel) {
 					return mv;
 				} else {
-					throw new MqttUnacceptableProtocolVersionException(protocolName + " and " + protocolLevel + " are not match");
+					throw new UnacceptableProtocolVersionException(protocolName + " and " + protocolLevel + " are not match");
 				}
 			}
 		}
-		throw new MqttUnacceptableProtocolVersionException(protocolName + "is unknown protocol name");
+		throw new UnacceptableProtocolVersionException(protocolName + "is unknown protocol name");
 	}
 }

@@ -1,20 +1,20 @@
 package com.feeyo.net.codec.mqtt;
 
 /**
- * Variable header of {@link MqttConnectMessage}
+ * Variable header of {@link ConnectMessage}
  */
-public final class MqttConnAckVariableHeader {
+public final class ConnAckVariableHeader {
 
-    private final MqttConnectReturnCode connectReturnCode;
+    private final ConnectReturnCode connectReturnCode;
 
     private final boolean sessionPresent;
 
-    public MqttConnAckVariableHeader(MqttConnectReturnCode connectReturnCode, boolean sessionPresent) {
+    public ConnAckVariableHeader(ConnectReturnCode connectReturnCode, boolean sessionPresent) {
         this.connectReturnCode = connectReturnCode;
         this.sessionPresent = sessionPresent;
     }
 
-    public MqttConnectReturnCode connectReturnCode() {
+    public ConnectReturnCode connectReturnCode() {
         return connectReturnCode;
     }
 

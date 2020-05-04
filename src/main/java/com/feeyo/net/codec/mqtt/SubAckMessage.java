@@ -3,10 +3,10 @@ package com.feeyo.net.codec.mqtt;
 /**
  * See <a href="http://public.dhe.ibm.com/software/dw/webservices/ws-mqtt/mqtt-v3r1.html#suback">MQTTV3.1/suback</a>
  */
-public final class MqttSubAckMessage extends Message {
+public final class SubAckMessage extends Message {
 
-	public MqttSubAckMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader,
-			MqttSubAckPayload payload) {
+	public SubAckMessage(FixedHeader fixedHeader, MessageIdVariableHeader variableHeader,
+			SubAckPayload payload) {
 		super(fixedHeader, variableHeader, payload);
 	}
 
@@ -16,7 +16,7 @@ public final class MqttSubAckMessage extends Message {
 	}
 
 	@Override
-	public MqttSubAckPayload payload() {
-		return (MqttSubAckPayload) super.payload();
+	public SubAckPayload payload() {
+		return (SubAckPayload) super.payload();
 	}
 }

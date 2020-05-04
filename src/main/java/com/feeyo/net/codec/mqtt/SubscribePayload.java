@@ -4,17 +4,17 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Payload of the {@link MqttSubscribeMessage}
+ * Payload of the {@link SubscribeMessage}
  */
-public final class MqttSubscribePayload {
+public final class SubscribePayload {
 
-    private final List<MqttTopicSubscription> topicSubscriptions;
+    private final List<TopicSubscription> topicSubscriptions;
 
-    public MqttSubscribePayload(List<MqttTopicSubscription> topicSubscriptions) {
+    public SubscribePayload(List<TopicSubscription> topicSubscriptions) {
         this.topicSubscriptions = Collections.unmodifiableList(topicSubscriptions);
     }
 
-    public List<MqttTopicSubscription> topicSubscriptions() {
+    public List<TopicSubscription> topicSubscriptions() {
         return topicSubscriptions;
     }
 

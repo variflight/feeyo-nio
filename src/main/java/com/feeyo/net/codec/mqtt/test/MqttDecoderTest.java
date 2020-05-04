@@ -6,28 +6,28 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.feeyo.net.codec.UnknownProtocolException;
-import com.feeyo.net.codec.mqtt.MqttConnAckMessage;
-import com.feeyo.net.codec.mqtt.MqttConnAckVariableHeader;
-import com.feeyo.net.codec.mqtt.MqttConnectMessage;
-import com.feeyo.net.codec.mqtt.MqttConnectPayload;
-import com.feeyo.net.codec.mqtt.MqttConnectReturnCode;
-import com.feeyo.net.codec.mqtt.MqttConnectVariableHeader;
+import com.feeyo.net.codec.mqtt.ConnAckMessage;
+import com.feeyo.net.codec.mqtt.ConnAckVariableHeader;
+import com.feeyo.net.codec.mqtt.ConnectMessage;
+import com.feeyo.net.codec.mqtt.ConnectPayload;
+import com.feeyo.net.codec.mqtt.ConnectReturnCode;
+import com.feeyo.net.codec.mqtt.ConnectVariableHeader;
 import com.feeyo.net.codec.mqtt.MqttDecoder;
 import com.feeyo.net.codec.mqtt.MqttEncoder;
 import com.feeyo.net.codec.mqtt.FixedHeader;
 import com.feeyo.net.codec.mqtt.Message;
 import com.feeyo.net.codec.mqtt.MessageIdVariableHeader;
 import com.feeyo.net.codec.mqtt.MessageType;
-import com.feeyo.net.codec.mqtt.MqttPublishMessage;
-import com.feeyo.net.codec.mqtt.MqttPublishVariableHeader;
+import com.feeyo.net.codec.mqtt.PublishMessage;
+import com.feeyo.net.codec.mqtt.PublishVariableHeader;
 import com.feeyo.net.codec.mqtt.MqttQoS;
-import com.feeyo.net.codec.mqtt.MqttSubAckMessage;
-import com.feeyo.net.codec.mqtt.MqttSubAckPayload;
-import com.feeyo.net.codec.mqtt.MqttSubscribeMessage;
-import com.feeyo.net.codec.mqtt.MqttSubscribePayload;
-import com.feeyo.net.codec.mqtt.MqttTopicSubscription;
-import com.feeyo.net.codec.mqtt.MqttUnsubscribeMessage;
-import com.feeyo.net.codec.mqtt.MqttUnsubscribePayload;
+import com.feeyo.net.codec.mqtt.SubAckMessage;
+import com.feeyo.net.codec.mqtt.SubAckPayload;
+import com.feeyo.net.codec.mqtt.SubscribeMessage;
+import com.feeyo.net.codec.mqtt.SubscribePayload;
+import com.feeyo.net.codec.mqtt.TopicSubscription;
+import com.feeyo.net.codec.mqtt.UnsubscribeMessage;
+import com.feeyo.net.codec.mqtt.UnsubscribePayload;
 import com.feeyo.net.codec.mqtt.MqttVersion;
 
 //
@@ -95,17 +95,17 @@ public class MqttDecoderTest {
 		return new Message(mqttFixedHeader, mqttMessageIdVariableHeader);
 	}
 
-	private static MqttConnectMessage createConnectMessage(MqttVersion mqttVersion) {
+	private static ConnectMessage createConnectMessage(MqttVersion mqttVersion) {
 		return createConnectMessage(mqttVersion, USER_NAME, PASSWORD);
 	}
 
-	private static MqttConnectMessage createConnectMessage(MqttVersion mqttVersion, String username, String password) {
+	private static ConnectMessage createConnectMessage(MqttVersion mqttVersion, String username, String password) {
 		
 		
 		 FixedHeader mqttFixedHeader =
                  new FixedHeader(MessageType.CONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0);
-         MqttConnectVariableHeader mqttConnectVariableHeader =
-                 new MqttConnectVariableHeader(
+         ConnectVariableHeader mqttConnectVariableHeader =
+                 new ConnectVariableHeader(
                 		 mqttVersion.protocolName(),
                 		 mqttVersion.protocolLevel(),
                          true,
@@ -115,47 +115,47 @@ public class MqttDecoderTest {
                          true,
                          true,
                          KEEP_ALIVE_SECONDS);
-         MqttConnectPayload mqttConnectPayload =
-                 new MqttConnectPayload(CLIENT_ID, WILL_TOPIC, WILL_MESSAGE.getBytes(), username, password.getBytes());
-         return new MqttConnectMessage(mqttFixedHeader, mqttConnectVariableHeader, mqttConnectPayload);
+         ConnectPayload mqttConnectPayload =
+                 new ConnectPayload(CLIENT_ID, WILL_TOPIC, WILL_MESSAGE.getBytes(), username, password.getBytes());
+         return new ConnectMessage(mqttFixedHeader, mqttConnectVariableHeader, mqttConnectPayload);
 	}
 
-	private static MqttConnAckMessage createConnAckMessage() {
+	private static ConnAckMessage createConnAckMessage() {
 		FixedHeader mqttFixedHeader = new FixedHeader(MessageType.CONNACK, false, MqttQoS.AT_MOST_ONCE,
 				false, 0);
-		MqttConnAckVariableHeader mqttConnAckVariableHeader = new MqttConnAckVariableHeader(
-				MqttConnectReturnCode.CONNECTION_ACCEPTED, true);
-		return new MqttConnAckMessage(mqttFixedHeader, mqttConnAckVariableHeader);
+		ConnAckVariableHeader mqttConnAckVariableHeader = new ConnAckVariableHeader(
+				ConnectReturnCode.CONNECTION_ACCEPTED, true);
+		return new ConnAckMessage(mqttFixedHeader, mqttConnAckVariableHeader);
 	}
 
-	private static MqttPublishMessage createPublishMessage() {
+	private static PublishMessage createPublishMessage() {
 		FixedHeader mqttFixedHeader = new FixedHeader(MessageType.PUBLISH, false, MqttQoS.AT_LEAST_ONCE, true, 0);
-		MqttPublishVariableHeader mqttPublishVariableHeader = new MqttPublishVariableHeader("/abc", 1234);
+		PublishVariableHeader mqttPublishVariableHeader = new PublishVariableHeader("/abc", 1234);
 		byte[] payload = "whatever".getBytes(StandardCharsets.UTF_8);
-		return new MqttPublishMessage(mqttFixedHeader, mqttPublishVariableHeader, payload);
+		return new PublishMessage(mqttFixedHeader, mqttPublishVariableHeader, payload);
 	}
 
-	private static MqttSubscribeMessage createSubscribeMessage() {
+	private static SubscribeMessage createSubscribeMessage() {
 		FixedHeader mqttFixedHeader = new FixedHeader(MessageType.SUBSCRIBE, false, MqttQoS.AT_LEAST_ONCE, true, 0);
 		MessageIdVariableHeader mqttMessageIdVariableHeader = MessageIdVariableHeader.from(12345);
 		//
-		List<MqttTopicSubscription> topicSubscriptions = new LinkedList<MqttTopicSubscription>();
-		topicSubscriptions.add(new MqttTopicSubscription("/abc", MqttQoS.AT_LEAST_ONCE));
-		topicSubscriptions.add(new MqttTopicSubscription("/def", MqttQoS.AT_LEAST_ONCE));
-		topicSubscriptions.add(new MqttTopicSubscription("/xyz", MqttQoS.EXACTLY_ONCE));
+		List<TopicSubscription> topicSubscriptions = new LinkedList<TopicSubscription>();
+		topicSubscriptions.add(new TopicSubscription("/abc", MqttQoS.AT_LEAST_ONCE));
+		topicSubscriptions.add(new TopicSubscription("/def", MqttQoS.AT_LEAST_ONCE));
+		topicSubscriptions.add(new TopicSubscription("/xyz", MqttQoS.EXACTLY_ONCE));
 
-		MqttSubscribePayload mqttSubscribePayload = new MqttSubscribePayload(topicSubscriptions);
-		return new MqttSubscribeMessage(mqttFixedHeader, mqttMessageIdVariableHeader, mqttSubscribePayload);
+		SubscribePayload mqttSubscribePayload = new SubscribePayload(topicSubscriptions);
+		return new SubscribeMessage(mqttFixedHeader, mqttMessageIdVariableHeader, mqttSubscribePayload);
 	}
 
-	private static MqttSubAckMessage createSubAckMessage() {
+	private static SubAckMessage createSubAckMessage() {
 		FixedHeader mqttFixedHeader = new FixedHeader(MessageType.SUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);
 		MessageIdVariableHeader mqttMessageIdVariableHeader = MessageIdVariableHeader.from(12345);
-		MqttSubAckPayload mqttSubAckPayload = new MqttSubAckPayload(1, 2, 0);
-		return new MqttSubAckMessage(mqttFixedHeader, mqttMessageIdVariableHeader, mqttSubAckPayload);
+		SubAckPayload mqttSubAckPayload = new SubAckPayload(1, 2, 0);
+		return new SubAckMessage(mqttFixedHeader, mqttMessageIdVariableHeader, mqttSubAckPayload);
 	}
 
-	private static MqttUnsubscribeMessage createUnsubscribeMessage() {
+	private static UnsubscribeMessage createUnsubscribeMessage() {
 		FixedHeader mqttFixedHeader = new FixedHeader(MessageType.UNSUBSCRIBE, false, MqttQoS.AT_LEAST_ONCE, true, 0);
 		MessageIdVariableHeader mqttMessageIdVariableHeader = MessageIdVariableHeader.from(12345);
 		//
@@ -164,7 +164,7 @@ public class MqttDecoderTest {
 		topics.add("/def");
 		topics.add("/xyz");
 
-		MqttUnsubscribePayload mqttUnsubscribePayload = new MqttUnsubscribePayload(topics);
-		return new MqttUnsubscribeMessage(mqttFixedHeader, mqttMessageIdVariableHeader, mqttUnsubscribePayload);
+		UnsubscribePayload mqttUnsubscribePayload = new UnsubscribePayload(topics);
+		return new UnsubscribeMessage(mqttFixedHeader, mqttMessageIdVariableHeader, mqttUnsubscribePayload);
 	}
 }

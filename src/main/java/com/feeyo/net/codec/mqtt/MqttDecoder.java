@@ -88,7 +88,7 @@ public class MqttDecoder implements Decoder<List<Message>> {
 					this.state = State.READ_FIXED_HEADER;
 					//
 					//
-					Message message = MqttMessageFactory.newMessage(fixedHeader, variableHeader, payloadResult);
+					Message message = MessageFactory.newMessage(fixedHeader, variableHeader, payloadResult);
 					out.add(message);
 					//
 					// reset
@@ -201,7 +201,7 @@ public class MqttDecoder implements Decoder<List<Message>> {
 		return null; // should never reach here
 	}
 
-	private MqttConnectVariableHeader decodeConnectionVariableHeader(CompositeByteArray buffer)
+	private ConnectVariableHeader decodeConnectionVariableHeader(CompositeByteArray buffer)
 			throws UnknownProtocolException {
 		String protocolName = decodeString(buffer);		// 协议名
 		byte protocolLevel = buffer.get(offset++);		// 协议级别
@@ -225,14 +225,14 @@ public class MqttDecoder implements Decoder<List<Message>> {
             }
         }
 
-		return new MqttConnectVariableHeader(mqttVersion.protocolName(), mqttVersion.protocolLevel(), hasUserName,
+		return new ConnectVariableHeader(mqttVersion.protocolName(), mqttVersion.protocolLevel(), hasUserName,
 				hasPassword, willRetain, willQos, willFlag, cleanSession, keepAlive);
     }
 
-	private MqttConnAckVariableHeader decodeConnAckVariableHeader(CompositeByteArray buffer) {
+	private ConnAckVariableHeader decodeConnAckVariableHeader(CompositeByteArray buffer) {
 		boolean sessionPresent = (buffer.get(offset++) & 0xff & 0x01) == 0x01;		// 连接确认标志
 		byte returnCode = buffer.get(offset++);										// 连接返回码
-		return new MqttConnAckVariableHeader(MqttConnectReturnCode.valueOf(returnCode), sessionPresent);
+		return new ConnAckVariableHeader(ConnectReturnCode.valueOf(returnCode), sessionPresent);
 	}
 
 	private MessageIdVariableHeader decodeMessageIdVariableHeader(CompositeByteArray buffer)
@@ -241,7 +241,7 @@ public class MqttDecoder implements Decoder<List<Message>> {
 		return MessageIdVariableHeader.from(messageId);
 	}
 
-	private MqttPublishVariableHeader decodePublishVariableHeader(CompositeByteArray buffer,
+	private PublishVariableHeader decodePublishVariableHeader(CompositeByteArray buffer,
 			FixedHeader fixedHeader) throws UnknownProtocolException {
 		//
 		String topicName = decodeString(buffer);
@@ -252,7 +252,7 @@ public class MqttDecoder implements Decoder<List<Message>> {
 		if (fixedHeader.qosLevel().value() > 0) 
 			messageId = decodeMessageId(buffer);
 		//
-		return new MqttPublishVariableHeader(topicName, messageId);
+		return new PublishVariableHeader(topicName, messageId);
 	}
 
 	private int decodeMessageId(CompositeByteArray buffer) throws UnknownProtocolException {
@@ -265,12 +265,12 @@ public class MqttDecoder implements Decoder<List<Message>> {
     //
 	// 解析有效载荷 Payload
 	private Object decodePayload(CompositeByteArray buffer, MessageType messageType, int remainingLength, Object variableHeader)
-			throws MqttUnacceptableProtocolVersionException, MqttIdentifierRejectedException {
+			throws UnacceptableProtocolVersionException, IdentifierRejectedException {
 		//
 		// 有效载荷主要包含应用消息，每个控制报文类型不一样
 		switch (messageType) {
 		case CONNECT:
-			return decodeConnectionPayload(buffer, (MqttConnectVariableHeader) variableHeader);
+			return decodeConnectionPayload(buffer, (ConnectVariableHeader) variableHeader);
 		case SUBSCRIBE:
 			return decodeSubscribePayload(buffer, remainingLength);
 		case SUBACK:
@@ -286,14 +286,14 @@ public class MqttDecoder implements Decoder<List<Message>> {
 	}
 
 	//
-	private MqttConnectPayload decodeConnectionPayload(CompositeByteArray buffer,
-			MqttConnectVariableHeader connectVariableHeader)
-			throws MqttUnacceptableProtocolVersionException, MqttIdentifierRejectedException {
+	private ConnectPayload decodeConnectionPayload(CompositeByteArray buffer,
+			ConnectVariableHeader connectVariableHeader)
+			throws UnacceptableProtocolVersionException, IdentifierRejectedException {
 		//
 		String clientId = decodeString(buffer);
 		MqttVersion mqttVersion = MqttVersion.fromProtocolNameAndLevel(connectVariableHeader.name(), (byte) connectVariableHeader.version());
 		if (!isValidClientId(mqttVersion, clientId)) 
-			throw new MqttIdentifierRejectedException("invalid clientIdentifier: " + clientId);
+			throw new IdentifierRejectedException("invalid clientIdentifier: " + clientId);
 		//
 		String willTopic = null;
 		byte[] willMessage = null;
@@ -305,7 +305,7 @@ public class MqttDecoder implements Decoder<List<Message>> {
 		String userName = connectVariableHeader.hasUserName() ? decodeString(buffer) : null;
 		byte[] password = connectVariableHeader.hasPassword() ? decodeByteArray(buffer): null;
 		//
-		return new MqttConnectPayload(clientId, 
+		return new ConnectPayload(clientId, 
 				willTopic != null ? willTopic : null,
 				willMessage != null ? willMessage : null,
 				userName != null ? userName : null,
@@ -313,8 +313,8 @@ public class MqttDecoder implements Decoder<List<Message>> {
 	}
 
 	//
-	private MqttSubscribePayload decodeSubscribePayload(CompositeByteArray buffer, int remainingLength) {
-		List<MqttTopicSubscription> subscribeTopics = new ArrayList<MqttTopicSubscription>();
+	private SubscribePayload decodeSubscribePayload(CompositeByteArray buffer, int remainingLength) {
+		List<TopicSubscription> subscribeTopics = new ArrayList<TopicSubscription>();
 		//
 		int numberOfBytesConsumed = 0;
 		while (numberOfBytesConsumed < remainingLength) {
@@ -323,13 +323,13 @@ public class MqttDecoder implements Decoder<List<Message>> {
 			numberOfBytesConsumed += (offset - old);
 			int qos = buffer.get(offset++) & 0xFF & 0x03;
 			numberOfBytesConsumed++;
-			subscribeTopics.add(new MqttTopicSubscription(topicName, MqttQoS.valueOf(qos)));
+			subscribeTopics.add(new TopicSubscription(topicName, MqttQoS.valueOf(qos)));
 		}
-		return new MqttSubscribePayload(subscribeTopics);
+		return new SubscribePayload(subscribeTopics);
 	}
 
 	//
-	private MqttSubAckPayload decodeSubackPayload(CompositeByteArray buffer, int remainingLength) {
+	private SubAckPayload decodeSubackPayload(CompositeByteArray buffer, int remainingLength) {
 		List<Integer> grantedQos = new ArrayList<Integer>();
 		//
 		int numberOfBytesConsumed = 0;
@@ -341,10 +341,10 @@ public class MqttDecoder implements Decoder<List<Message>> {
 			numberOfBytesConsumed++;
 			grantedQos.add(qos);
 		}
-		return new MqttSubAckPayload(grantedQos);
+		return new SubAckPayload(grantedQos);
 	}
 
-	private MqttUnsubscribePayload decodeUnsubscribePayload(CompositeByteArray buffer, int remainingLength) {
+	private UnsubscribePayload decodeUnsubscribePayload(CompositeByteArray buffer, int remainingLength) {
 		List<String> unsubscribeTopics = new ArrayList<String>();
 		//
 		int numberOfBytesConsumed = 0;
@@ -354,7 +354,7 @@ public class MqttDecoder implements Decoder<List<Message>> {
 			numberOfBytesConsumed += (offset - old);
 			unsubscribeTopics.add(topicName);
 		}
-		return new MqttUnsubscribePayload(unsubscribeTopics);
+		return new UnsubscribePayload(unsubscribeTopics);
 	}
 
 	private byte[] decodePublishPayload(CompositeByteArray buffer, int remainingLength) {
