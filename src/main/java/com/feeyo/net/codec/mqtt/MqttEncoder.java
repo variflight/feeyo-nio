@@ -19,15 +19,7 @@ public final class MqttEncoder {
 
     private MqttEncoder() { }
 
-
-    /**
-     * This is the main encoding method.
-     * It's only visible for testing.
-     *
-     * @param byteBufAllocator Allocates ByteBuf
-     * @param message MQTT message to encode
-     * @return ByteBuf with encoded bytes
-     */
+    //
     public ByteBuffer encode(Message message) throws UnknownProtocolException {
 
         switch (message.fixedHeader().messageType()) {
@@ -67,10 +59,10 @@ public final class MqttEncoder {
         }
     }
 
-    private static ByteBuffer encodeConnectMessage(
-            ConnectMessage message) throws UnknownProtocolException {
-        int payloadBufferSize = 0;
-
+    //
+	private static ByteBuffer encodeConnectMessage(ConnectMessage message) throws UnknownProtocolException {
+		//
+		int payloadBufferSize = 0;
         FixedHeader mqttFixedHeader = message.fixedHeader();
         ConnectVariableHeader variableHeader = message.variableHeader();
         ConnectPayload payload = message.payload();
@@ -162,6 +154,7 @@ public final class MqttEncoder {
         if (variableHeader.isWillFlag()) {
             flagByte |= 0x04;
         }
+        //
         if (variableHeader.isCleanSession()) {
             flagByte |= 0x02;
         }
