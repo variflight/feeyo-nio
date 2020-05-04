@@ -14,7 +14,7 @@ import static com.feeyo.net.codec.mqtt.MqttCodecUtil.*;
 public final class MqttEncoder {
 	
 	private static final byte[] EMPTY_BYTES = {};
-
+	//
     public static final MqttEncoder INSTANCE = new MqttEncoder();
 
     private MqttEncoder() { }
@@ -340,27 +340,27 @@ public final class MqttEncoder {
     }
 
     //
-    private static void writeVariableLengthInt(ByteBuffer buf, int num) {
-        do {
-            int digit = num % 128;
-            num /= 128;
-            if (num > 0) {
-                digit |= 0x80;
-            }
-            buf.put((byte)digit);
-        } while (num > 0);
-    }
+	private static void writeVariableLengthInt(ByteBuffer buf, int num) {
+		do {
+			int digit = num % 128;
+			num /= 128;
+			if (num > 0) {
+				digit |= 0x80;
+			}
+			buf.put((byte) digit);
+		} while (num > 0);
+	}
 
-    private static int getVariableLengthInt(int num) {
-        int count = 0;
-        do {
-            num /= 128;
-            count++;
-        } while (num > 0);
-        return count;
-    }
+	private static int getVariableLengthInt(int num) {
+		int count = 0;
+		do {
+			num /= 128;
+			count++;
+		} while (num > 0);
+		return count;
+	}
 
-    private static byte[] encodeStringUtf8(String s) {
-      return s.getBytes(StandardCharsets.UTF_8);
-    }
+	private static byte[] encodeStringUtf8(String s) {
+		return s.getBytes(StandardCharsets.UTF_8);
+	}
 }
