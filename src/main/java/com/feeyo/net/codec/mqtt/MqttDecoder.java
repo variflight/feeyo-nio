@@ -1,4 +1,5 @@
 package com.feeyo.net.codec.mqtt;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;

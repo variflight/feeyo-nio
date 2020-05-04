@@ -312,7 +312,6 @@ public final class MqttEncoder {
         buf.put((byte) getFixedHeaderByte1(mqttFixedHeader));
         writeVariableLengthInt(buf, variableHeaderBufferSize);
         buf.putShort((short) msgId);
-
         return buf;
     }
 

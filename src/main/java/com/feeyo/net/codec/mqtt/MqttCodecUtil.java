@@ -8,6 +8,7 @@ final class MqttCodecUtil {
     private static final int MIN_CLIENT_ID_LENGTH = 1;
     private static final int MAX_CLIENT_ID_LENGTH = 23;
 
+    //
     static boolean isValidPublishTopicName(String topicName) {
         // publish topic name must not contain any wildcard
         for (char c : TOPIC_WILDCARDS) {
@@ -17,10 +18,12 @@ final class MqttCodecUtil {
         return true;
     }
 
+    //
     static boolean isValidMessageId(int messageId) {
         return messageId != 0;
     }
 
+    //
     static boolean isValidClientId(MqttVersion version, String clientId) {
         if (version == MqttVersion.MQTT_3_1) 
             return clientId != null && clientId.length() >= MIN_CLIENT_ID_LENGTH && clientId.length() <= MAX_CLIENT_ID_LENGTH;
@@ -33,6 +36,7 @@ final class MqttCodecUtil {
         throw new IllegalArgumentException(version + " is unknown mqtt version");
     }
 
+    //
     static FixedHeader validateFixedHeader(FixedHeader fixedHeader) throws UnknownProtocolException {
         switch (fixedHeader.messageType()) {
             case PUBREL:
@@ -45,6 +49,7 @@ final class MqttCodecUtil {
         }
     }
 
+    //
     static FixedHeader resetUnusedFields(FixedHeader fixedHeader) {
         switch (fixedHeader.messageType()) {
             case CONNECT:
