@@ -3,6 +3,16 @@
   	<groupId>com.feeyo</groupId>
   	<artifactId>feeyo-nio</artifactId>
   	<version>0.1.0</version>
+  	
+  	<!-- 私服配置 -->
+    <repositories>
+        <repository>
+            <id>nexus</id>
+            <name>local private nexus</name>
+            <url>http://192.168.5.13:8089/content/groups/public</url>
+        </repository>
+    </repositories>
+  	
   	<packaging>jar</packaging>
     <url>http://maven.apache.org</url>
 
