@@ -13,6 +13,13 @@
 
     <dependencies>
     
+    	<!-- feeyo BufferPool -->
+        <dependency>
+            <groupId>com.feeyo</groupId>
+            <artifactId>feeyo-bufferpool</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+    
     	<!-- OS metric -->
 		<dependency>
             <groupId>com.github.votoanthuan</groupId>

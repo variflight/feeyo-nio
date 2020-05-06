@@ -1,6 +1,6 @@
 package com.feeyo.net.codec.util;
 
-import com.feeyo.net.nio.buffer.BufferPool;
+import com.feeyo.buffer.BufferPool;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

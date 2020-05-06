@@ -1,0 +1,55 @@
+ /**
+   * Decompression of the header block occurs above the framing layer. This class lazily reads
+   * continuation frames as they are needed by {@link Hpack.Reader#readHeaders()}.
+   */
+  static final class ContinuationSource implements Source {
+    private final BufferedSource source;
+
+    int length;
+    byte flags;
+    int streamId;
+
+    int left;
+    short padding;
+
+    ContinuationSource(BufferedSource source) {
+      this.source = source;
+    }
+
+    @Override 
+    public long read(Buffer sink, long byteCount) throws IOException {
+      while (left == 0) {
+        source.skip(padding);
+        padding = 0;
+        if ((flags & FLAG_END_HEADERS) != 0) return -1;
+        readContinuationHeader();
+        // TODO: test case for empty continuation header?
+      }
+
+      long read = source.read(sink, Math.min(byteCount, left));
+      if (read == -1) return -1;
+      left -= read;
+      return read;
+    }
+
+    @Override 
+    public Timeout timeout() {
+      return source.timeout();
+    }
+
+    @Override 
+    public void close() throws IOException {
+    }
+
+    private void readContinuationHeader() throws IOException {
+      int previousStreamId = streamId;
+
+      length = left = readMedium(source);
+      byte type = (byte) (source.readByte() & 0xff);
+      flags = (byte) (source.readByte() & 0xff);
+      if (logger.isLoggable(FINE)) logger.fine(frameLog(true, streamId, length, type, flags));
+      streamId = (source.readInt() & 0x7fffffff);
+      if (type != TYPE_CONTINUATION) throw ioException("%s != TYPE_CONTINUATION", type);
+      if (streamId != previousStreamId) throw ioException("TYPE_CONTINUATION streamId changed");
+    }
+  }

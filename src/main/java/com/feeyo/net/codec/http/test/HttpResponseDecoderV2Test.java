@@ -4,8 +4,8 @@ import com.feeyo.net.codec.UnknownProtocolException;
 import com.feeyo.net.codec.http.*;
 import com.feeyo.net.nio.NetConfig;
 import com.feeyo.net.nio.NetSystem;
-import com.feeyo.net.nio.buffer.BufferPool;
-import com.feeyo.net.nio.buffer.bucket.BucketBufferPool;
+import com.feeyo.buffer.BufferPool;
+import com.feeyo.buffer.bucket.BucketBufferPool;
 import com.feeyo.net.nio.util.ExecutorUtil;
 
 import java.io.IOException;
@@ -21,8 +21,7 @@ public class HttpResponseDecoderV2Test {
         // 构造 boss & time threadPool
         final BufferPool bufferPool2 = new BucketBufferPool(1024 * 1024 * 512, //
                 1024 * 1024 * 1024, //
-                65536, //
-                0, new int[]{4096, 16384, 20480, 32768, 65536}, 65536);    //
+                new int[]{4096, 16384, 20480, 32768, 65536});    //
         //
         try {
             new NetSystem(bufferPool2, //

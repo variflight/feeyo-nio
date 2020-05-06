@@ -22,6 +22,7 @@ public final class UnsubscribePayload {
 		for (int i = 0; i < topics.size(); i++) {
 			builder.append("topicName = ").append(topics.get(i)).append(", ");
 		}
+		//
 		if (!topics.isEmpty()) {
 			builder.setLength(builder.length() - 2);
 		}
