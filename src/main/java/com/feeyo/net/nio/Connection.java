@@ -127,10 +127,9 @@ public class Connection extends ClosableConnection {
 			return;
 		
 		int size = data.length;
-		if ( size >= NetSystem.getInstance().getBufferPool().getDecomposeBufferSize() ) {
+		if ( size > NetSystem.getInstance().getBufferPool().getMaxChunkSize() ) 
 			size = NetSystem.getInstance().getBufferPool().getMinChunkSize();
-		}
-		
+		//
 		ByteBuffer buffer = allocate( size );
 		buffer = writeToBuffer(data, buffer);
 		write( buffer );
