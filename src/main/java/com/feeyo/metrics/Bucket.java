@@ -3,7 +3,7 @@ package com.feeyo.metrics;
 import com.feeyo.metrics.util.LongAdder;
 
 /**
- * The abstraction of a bucket for collecting statistics
+ * 分桶计数功能，统计一定时间间隔内的计数
  */
 class Bucket {
 

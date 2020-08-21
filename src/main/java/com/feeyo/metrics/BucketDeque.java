@@ -4,11 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The queue used to store the {@link Bucket}.
- * The update to this queue should be single thread.
- * The iteration over this data structure won't thrown {@link java.util.ConcurrentModificationException}.
- * 
- * 用于存放{@link Bucket}的队列
+ * 可以理解为一个时间窗口，用于保存最近N个时间间隔内的Bucket
  * 
  * 队列的更新应当是单线程的, 队列的遍历不会抛出{@link java.util.ConcurrentModificationException}
  */
