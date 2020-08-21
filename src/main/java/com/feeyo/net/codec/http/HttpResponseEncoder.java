@@ -36,7 +36,6 @@ public class HttpResponseEncoder {
     	   } else {
     		   response.headers().put(HttpHeaderNames.CONTENT_LENGTH, String.valueOf( content.length ) );   
     	   }
-    	   
        }
 		   
         // headers

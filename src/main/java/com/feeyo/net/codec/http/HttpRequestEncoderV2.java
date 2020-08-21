@@ -42,14 +42,11 @@ public class HttpRequestEncoderV2 {
 	    	byte[] header = getHeaderBytes( request );
 	    	byte[] content = request.getContent();
 	        if( content != null ) {
-	        	//
 	        	buffer = NetSystem.getInstance().getBufferPool().allocate( header.length + content.length );
     			buffer.put( header );
     			buffer.put( content );
     			return buffer;
-		        
 	        } else {
-	        	//
 	        	buffer = NetSystem.getInstance().getBufferPool().allocate( header.length );
     			buffer.put( header );
     			return buffer;
