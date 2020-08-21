@@ -16,6 +16,7 @@
   	-->
   	<packaging>jar</packaging>
     <url>http://maven.apache.org</url>
+    
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,19 +31,12 @@
             <artifactId>feeyo-bufferpool</artifactId>
             <version>0.1.0</version>
         </dependency>
-    
-    	<!-- OS metric -->
-		<dependency>
-            <groupId>com.github.votoanthuan</groupId>
-            <artifactId>sigar</artifactId>
-            <version>1.6.4</version>
-        </dependency>
 
 		<!-- guava -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>20.0</version>
+          	<version>24.1.1-jre</version>
         </dependency>
 
 		<!--  protobuf -->

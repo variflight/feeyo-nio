@@ -95,5 +95,4 @@ public class ProtobufEncoderV3 {
 			return encode( msgs.get(0) );
 		} 
 	}
-
 }
