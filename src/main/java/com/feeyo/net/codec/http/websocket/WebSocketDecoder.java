@@ -46,22 +46,21 @@ public class WebSocketDecoder implements Decoder<Frame> {
 				byte b = buffer.get();
 				boolean fin = ((b & 0x80) != 0);
 				byte opcode = (byte) (b & 0x0F);
-				if (!FrameType.isKnown(opcode)) {
+				if (!OpCode.isKnown(opcode)) {
 					throw new UnknownProtocolException("Unknown opcode: " + opcode);
 				}
 				//
 				// base framing flags
-				FrameType frameType = FrameType.from(opcode);
-				switch ( frameType ) {
-				case TEXT:
-				case BINARY:
+				switch ( opcode ) {
+				case OpCode.TEXT:
+				case OpCode.BINARY:
 					frame = new Frame(opcode);
 					// data validation
 					if (priorDataFrame) {
-						throw new UnknownProtocolException("Unexpected " + frameType + " frame, was expecting CONTINUATION");
+						throw new UnknownProtocolException("Unexpected " + OpCode.name(opcode) + " frame, was expecting CONTINUATION");
 					}
 					break;
-				case CONTINUATION:
+				case OpCode.CONTINUATION:
 					frame = new Frame(opcode);
 					// continuation validation
 					if (!priorDataFrame) {
@@ -69,13 +68,13 @@ public class WebSocketDecoder implements Decoder<Frame> {
 					}
 					// Be careful to use the original opcode
 					break;
-				case CLOSE:
-				case PING:
-				case PONG:
+				case OpCode.CLOSE:
+				case OpCode.PING:
+				case OpCode.PONG:
 					frame = new Frame(opcode);
 					// control frame validation
 					if (!fin) {
-						throw new UnknownProtocolException("Fragmented Frame [" + frameType + "]");
+						throw new UnknownProtocolException("Fragmented Frame [" + OpCode.name(opcode) + "]");
 					}
 					break;
 				}

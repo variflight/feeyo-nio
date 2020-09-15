@@ -11,7 +11,7 @@ public class WebSocketTest {
 	
 	public static void main(String[] args) throws UnknownProtocolException {
 		
-		Frame frame = new Frame(Frame.TEXT);
+		Frame frame = new Frame(OpCode.TEXT);
 		frame.setPayload("helloworld!!");
 		ByteBuffer buf = webSocketEncoder.encode(frame);
 		//

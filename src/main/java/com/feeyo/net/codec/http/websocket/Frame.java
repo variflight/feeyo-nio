@@ -33,14 +33,6 @@ import com.feeyo.net.nio.util.BufferUtil;
  */
 public class Frame {
 	//
-	// WebSocket Opcode
-	public static final byte CONTINUATION = (byte)0x00;
-	public static final byte TEXT = (byte)0x01;
-	public static final byte BINARY = (byte)0x02; 
-	public static final byte CLOSE = (byte)0x08;
-	public static final byte PING = (byte)0x09;
-	public static final byte PONG = (byte)0x0A;
-	//
 	public static final int MAX_CONTROL_PAYLOAD = 125;
 	
     /*
@@ -163,10 +155,6 @@ public class Frame {
 		return data.remaining();
 	}
 
-	public FrameType getType() {
-		return FrameType.from(getOpCode());
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -182,11 +170,11 @@ public class Frame {
 	}
 
 	public boolean isControlFrame() {
-		return this.getType().isControl();
+		return OpCode.isControlFrame(getOpCode());
 	}
 
 	public boolean isDataFrame() {
-		return this.getType().isData();
+		return OpCode.isDataFrame(getOpCode());
 	}
 
 	public boolean isFin() {
@@ -276,7 +264,7 @@ public class Frame {
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append(FrameType.from((byte) (finRsvOp & 0x0F)));
+		b.append(OpCode.name((byte) (finRsvOp & 0x0F)));
 		b.append('[');
 		b.append("len=").append(getPayloadLength());
 		b.append(",fin=").append((finRsvOp & 0x80) != 0);
