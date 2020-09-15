@@ -1,6 +1,6 @@
 package com.feeyo.net.codec.http.websocket;
 
-public class CloseFrame extends ControlFrame {
+public class CloseFrame extends AbstractControlFrame {
 	//
 	public CloseFrame() {
 		super(OpCode.CLOSE);
@@ -22,7 +22,7 @@ public class CloseFrame extends ControlFrame {
 		if (reason == null) 
 			return null;
 		//
-		int maxSize = (ControlFrame.MAX_CONTROL_PAYLOAD - 2);
+		int maxSize = (AbstractControlFrame.MAX_CONTROL_PAYLOAD - 2);
 		if (reason.length() <= maxSize) {
 			return reason;
 		}

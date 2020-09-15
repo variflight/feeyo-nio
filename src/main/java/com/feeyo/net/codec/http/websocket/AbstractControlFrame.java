@@ -5,19 +5,19 @@ import java.util.Arrays;
 
 import com.feeyo.net.codec.ProtocolException;
 
-public abstract class ControlFrame extends AbstractFrame {
+public abstract class AbstractControlFrame extends AbstractFrame {
 	/*
 	 * Maximum size of Control frame, per RFC 6455 
 	 */
 	public static final int MAX_CONTROL_PAYLOAD = 125;
 
-	public ControlFrame(byte opcode) {
+	public AbstractControlFrame(byte opcode) {
 		super(opcode);
 	}
 
 	public void assertValid() {
 		if (isControlFrame()) {
-			if (getPayloadLength() > ControlFrame.MAX_CONTROL_PAYLOAD) {
+			if (getPayloadLength() > AbstractControlFrame.MAX_CONTROL_PAYLOAD) {
 				throw new ProtocolException("Desired payload length [" + getPayloadLength() 
 								+ "] exceeds maximum control payload length [" + MAX_CONTROL_PAYLOAD + "]");
 			}
@@ -47,7 +47,7 @@ public abstract class ControlFrame extends AbstractFrame {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		ControlFrame other = (ControlFrame) obj;
+		AbstractControlFrame other = (AbstractControlFrame) obj;
 		if (data == null) {
 			if (other.data != null) {
 				return false;

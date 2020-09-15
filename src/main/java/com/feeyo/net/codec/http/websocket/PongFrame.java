@@ -3,7 +3,7 @@ package com.feeyo.net.codec.http.websocket;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-public class PongFrame extends ControlFrame {
+public class PongFrame extends AbstractControlFrame {
 	//
 	public PongFrame() {
 		super(OpCode.PONG);

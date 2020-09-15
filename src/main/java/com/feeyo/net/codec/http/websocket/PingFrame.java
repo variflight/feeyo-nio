@@ -3,7 +3,7 @@ package com.feeyo.net.codec.http.websocket;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-public class PingFrame extends ControlFrame {
+public class PingFrame extends AbstractControlFrame {
 	//
 	public PingFrame() {
 		super(OpCode.PING);
