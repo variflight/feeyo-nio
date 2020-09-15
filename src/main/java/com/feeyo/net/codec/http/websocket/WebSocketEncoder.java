@@ -3,32 +3,37 @@ package com.feeyo.net.codec.http.websocket;
 import java.nio.ByteBuffer;
 
 public class WebSocketEncoder {
-	
+	//
+	// @see https://stackoverflow.com/questions/25189006/how-to-frame-websocket-data-in-javascript
 	public ByteBuffer encode(Frame frame) {
-		int length = frame.getPayloadLength();
-		byte b0 = (byte) (0x8f & (frame.getOpCode() | 0xf0));
+		int len = frame.getPayloadLength();
+		byte header0 = (byte) (0x8f & (frame.getOpCode() | 0xf0));
 		ByteBuffer buffer = null;
-		if (length < 126) {
-			buffer = ByteBuffer.allocate(2 + length);
-			buffer.put(b0);
-			buffer.put((byte) length);
+		if (len <= 125) {
+			buffer = ByteBuffer.allocate(2 + len);
+			buffer.put(header0);
+			buffer.put((byte) len);
 			//
-		} else if (length < (1 << 16) - 1) {
-			buffer = ByteBuffer.allocate(4 + length);
-			buffer.put(b0);
+		} else if (len <= 0xffff) {
+			buffer = ByteBuffer.allocate(4 + len);
+			buffer.put(header0);
 			buffer.put((byte) 126); 
-			buffer.put((byte) (length >>> 8));
-			buffer.put((byte) (length & 0xff));
+			buffer.put((byte) (len >>> 8));
+			buffer.put((byte) (len & 0xff));
 			//
 		} else {
-			buffer = ByteBuffer.allocate(10 + length);
-			buffer.put(b0);
+			/* 0xffff < len <= 2^63 */
+			buffer = ByteBuffer.allocate(10 + len);
+			buffer.put(header0);
 			buffer.put((byte) 127);
-			buffer.put(new byte[] { 0, 0, 0, 0 });
-			buffer.put((byte) (length >>> 24));
-			buffer.put((byte) (length >>> 16));
-			buffer.put((byte) (length >>> 8));
-			buffer.put((byte) (length & 0xff));
+			buffer.put((byte)((len >> 56) & 0xff));
+			buffer.put((byte)((len >> 48) & 0xff));
+			buffer.put((byte)((len >> 40) & 0xff));
+			buffer.put((byte)((len >> 32) & 0xff));
+			buffer.put((byte)((len >> 24) & 0xff));
+			buffer.put((byte)((len >> 16) & 0xff));
+			buffer.put((byte)((len >> 8) & 0xff));
+			buffer.put((byte)(len & 0xff));
 		}
 		//
 		for (int i = 0; i < frame.getPayloadLength(); i++) {
