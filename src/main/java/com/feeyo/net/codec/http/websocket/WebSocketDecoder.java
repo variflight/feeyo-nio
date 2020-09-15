@@ -31,8 +31,6 @@ public class WebSocketDecoder implements Decoder<Frame> {
 	private byte[] maskBytes;
 	private int maskInt;
 	private int maskOffset;
-	//
-	private byte flagsInUse = 0x00;
 
 	@Override
 	public Frame decode(byte[] buf) throws UnknownProtocolException {
@@ -51,26 +49,18 @@ public class WebSocketDecoder implements Decoder<Frame> {
 					frame = new Frame(opcode);
 					frame.setFin(fin);
 					//
-					// Are any flags set?
 					if ((b & 0x70) != 0) {
 						//
 						if ((b & 0x40) != 0) {
-							if (isRsv1InUse())
-								frame.setRsv1(true);
-							else
-								throw new UnknownProtocolException("RSV1 not allowed to be set");
+							frame.setRsv1(true);
 						}
+						//
 						if ((b & 0x20) != 0) {
-							if (isRsv2InUse())
-								frame.setRsv2(true);
-							else
-								throw new UnknownProtocolException("RSV2 not allowed to be set");
+							frame.setRsv2(true);
 						}
+						//
 						if ((b & 0x10) != 0) {
-							if (isRsv3InUse())
-								frame.setRsv3(true);
-							else
-								throw new UnknownProtocolException("RSV3 not allowed to be set");
+							frame.setRsv3(true);
 						}
 					}
 	
@@ -266,17 +256,5 @@ public class WebSocketDecoder implements Decoder<Frame> {
 		}
 		this.maskInt = maskInt;
 		this.maskOffset = 0;
-	}
-
-	public boolean isRsv1InUse() {
-		return (flagsInUse & 0x40) != 0;
-	}
-
-	public boolean isRsv2InUse() {
-		return (flagsInUse & 0x20) != 0;
-	}
-
-	public boolean isRsv3InUse() {
-		return (flagsInUse & 0x10) != 0;
 	}
 }
