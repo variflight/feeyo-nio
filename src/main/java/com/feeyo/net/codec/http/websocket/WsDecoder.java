@@ -16,7 +16,6 @@ public class WsDecoder implements Decoder<Frame> {
 		MASK_BYTES, 
 		PAYLOAD
 	}
-
 	//
 	// State specific
 	private State state = State.START;
