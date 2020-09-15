@@ -60,23 +60,23 @@ public class Frame {
 	}
     
 	public void assertValid() throws UnknownProtocolException {
+		//
 		if (isControlFrame()) {
+			//
 			if (getPayloadLength() > MAX_CONTROL_PAYLOAD) {
-				throw new UnknownProtocolException("Desired payload length [" + getPayloadLength() 
-								+ "] exceeds maximum control payload length [" + MAX_CONTROL_PAYLOAD + "]");
+				throw new UnknownProtocolException("Desired payload length [" + getPayloadLength() + "] exceeds maximum payload length [" + MAX_CONTROL_PAYLOAD + "]");
 			}
-			if ((finRsvOp & 0x80) == 0) {
+			if ((finRsvOp & 0x80) == 0) 
 				throw new UnknownProtocolException("Cannot have FIN==false on Control frames");
-			}
-			if ((finRsvOp & 0x40) != 0) {
+
+			if ((finRsvOp & 0x40) != 0) 
 				throw new UnknownProtocolException("Cannot have RSV1==true on Control frames");
-			}
-			if ((finRsvOp & 0x20) != 0) {
+		
+			if ((finRsvOp & 0x20) != 0) 
 				throw new UnknownProtocolException("Cannot have RSV2==true on Control frames");
-			}
-			if ((finRsvOp & 0x10) != 0) {
+			
+			if ((finRsvOp & 0x10) != 0) 
 				throw new UnknownProtocolException("Cannot have RSV3==true on Control frames");
-			}
 		}
 	}
 	//
@@ -93,37 +93,6 @@ public class Frame {
 		} else {
 			mask = null;
 		}
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		Frame other = (Frame) obj;
-		if (data == null) {
-			if (other.data != null) {
-				return false;
-			}
-		} else if (!data.equals(other.data)) {
-			return false;
-		}
-		if (finRsvOp != other.finRsvOp) {
-			return false;
-		}
-		if (!Arrays.equals(mask, other.mask)) {
-			return false;
-		}
-		if (masked != other.masked) {
-			return false;
-		}
-		return true;
 	}
 
 	public byte[] getMask() {
@@ -155,20 +124,11 @@ public class Frame {
 		return data.remaining();
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = (prime * result) + ((data == null) ? 0 : data.hashCode());
-		result = (prime * result) + finRsvOp;
-		result = (prime * result) + Arrays.hashCode(mask);
-		return result;
-	}
-
 	public boolean hasPayload() {
 		return ((data != null) && data.hasRemaining());
 	}
 
+	//
 	public boolean isControlFrame() {
 		return OpCode.isControlFrame(getOpCode());
 	}
@@ -259,6 +219,48 @@ public class Frame {
 	public Frame setRsv3(boolean rsv3) {
 		this.finRsvOp = (byte) ((finRsvOp & 0xEF) | (rsv3 ? 0x10 : 0x00));	// set bit 4
 		return this;
+	}
+	
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = (prime * result) + ((data == null) ? 0 : data.hashCode());
+		result = (prime * result) + finRsvOp;
+		result = (prime * result) + Arrays.hashCode(mask);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Frame other = (Frame) obj;
+		if (data == null) {
+			if (other.data != null) {
+				return false;
+			}
+		} else if (!data.equals(other.data)) {
+			return false;
+		}
+		if (finRsvOp != other.finRsvOp) {
+			return false;
+		}
+		if (!Arrays.equals(mask, other.mask)) {
+			return false;
+		}
+		if (masked != other.masked) {
+			return false;
+		}
+		return true;
 	}
 	
 	@Override
