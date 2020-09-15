@@ -28,6 +28,7 @@ public class WebSocketDecoder implements Decoder<Frame> {
 	private ByteBuffer payload;
 	private int payloadLength;
 	//
+	// 掩码，用于掩码算法
 	private byte[] maskBytes;
 	private int maskInt;
 	private int maskOffset;
