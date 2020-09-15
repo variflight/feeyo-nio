@@ -6,13 +6,14 @@ public class WebSocketEncoder {
 	
 	public ByteBuffer encode(Frame frame) {
 		//
-		int length = frame.getPayloadLength() + 1;
+		int length = frame.getPayloadLength();
 		byte b0 = (byte) (0x8f & (frame.getOpCode() | 0xf0));
 		ByteBuffer buffer = null;
 		if (length < 126) {
 			buffer = ByteBuffer.allocate(2 + length);
 			buffer.put(b0);
 			buffer.put((byte) length);
+			
 		} else if (length < (1 << 16) - 1) {
 			buffer = ByteBuffer.allocate(4 + length);
 			buffer.put(b0);
@@ -20,6 +21,7 @@ public class WebSocketEncoder {
 			// 
 			buffer.put((byte) (length >>> 8));
 			buffer.put((byte) (length & 0xff));
+			
 		} else {
 			buffer = ByteBuffer.allocate(10 + length);
 			buffer.put(b0);
@@ -30,6 +32,10 @@ public class WebSocketEncoder {
 			buffer.put((byte) (length >>> 16));
 			buffer.put((byte) (length >>> 8));
 			buffer.put((byte) (length & 0xff));
+		}
+		//
+		for (int i = 0; i < frame.getPayloadLength(); i++) {
+			buffer.put(frame.getPayload().get(i));
 		}
 		return buffer;
 	}

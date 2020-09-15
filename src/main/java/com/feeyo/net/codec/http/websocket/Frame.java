@@ -33,9 +33,17 @@ import com.feeyo.net.nio.util.BufferUtil;
  */
 public class Frame {
 	//
+	// WebSocket Opcode
+	public static final byte CONTINUATION = (byte)0x00;
+	public static final byte TEXT = (byte)0x01;
+	public static final byte BINARY = (byte)0x02; 
+	public static final byte CLOSE = (byte)0x08;
+	public static final byte PING = (byte)0x09;
+	public static final byte PONG = (byte)0x0A;
+	//
 	public static final int MAX_CONTROL_PAYLOAD = 125;
-
-    /**
+	
+    /*
      * Combined FIN + RSV1 + RSV2 + RSV3 + OpCode byte.
      * <p>
      * 
