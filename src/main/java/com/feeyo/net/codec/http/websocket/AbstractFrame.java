@@ -29,10 +29,10 @@ import com.feeyo.net.nio.util.BufferUtil;
  *   +---------------------------------------------------------------+
  * </pre>
  */
-public abstract class WebSocketFrame implements Frame {
+public abstract class AbstractFrame implements Frame {
 	//
-	public static WebSocketFrame copy(Frame original) {
-		WebSocketFrame copy;
+	public static AbstractFrame copy(Frame original) {
+		AbstractFrame copy;
 		switch (original.getOpCode()) {
             case OpCode.BINARY:
                 copy = new BinaryFrame();
@@ -91,7 +91,7 @@ public abstract class WebSocketFrame implements Frame {
     /**
      * Construct form opcode
      */
-	protected WebSocketFrame(byte opcode) {
+	protected AbstractFrame(byte opcode) {
 		reset();
 		setOpCode(opcode);
 	}
@@ -113,7 +113,7 @@ public abstract class WebSocketFrame implements Frame {
 		}
 	}
 
-	protected void copyHeaders(WebSocketFrame copy) {
+	protected void copyHeaders(AbstractFrame copy) {
 		finRsvOp = copy.finRsvOp;
 		masked = copy.masked;
 		mask = null;
@@ -134,7 +134,7 @@ public abstract class WebSocketFrame implements Frame {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		WebSocketFrame other = (WebSocketFrame) obj;
+		AbstractFrame other = (AbstractFrame) obj;
 		if (data == null) {
 			if (other.data != null) {
 				return false;
@@ -245,7 +245,7 @@ public abstract class WebSocketFrame implements Frame {
 		mask = null;
 	}
 
-	public WebSocketFrame setFin(boolean fin) {
+	public AbstractFrame setFin(boolean fin) {
 		// set bit 1
 		this.finRsvOp = (byte) ((finRsvOp & 0x7F) | (fin ? 0x80 : 0x00));
 		return this;
@@ -262,7 +262,7 @@ public abstract class WebSocketFrame implements Frame {
 		return this;
 	}
 
-	protected WebSocketFrame setOpCode(byte op) {
+	protected AbstractFrame setOpCode(byte op) {
 		this.finRsvOp = (byte) ((finRsvOp & 0xF0) | (op & 0x0F));
 		return this;
 	}
@@ -277,24 +277,24 @@ public abstract class WebSocketFrame implements Frame {
 	 * @param buf
 	 *            the bytebuffer to set
 	 */
-	public WebSocketFrame setPayload(ByteBuffer buf) {
+	public AbstractFrame setPayload(ByteBuffer buf) {
 		data = buf;
 		return this;
 	}
 
-	public WebSocketFrame setRsv1(boolean rsv1) {
+	public AbstractFrame setRsv1(boolean rsv1) {
 		// set bit 2
 		this.finRsvOp = (byte) ((finRsvOp & 0xBF) | (rsv1 ? 0x40 : 0x00));
 		return this;
 	}
 
-	public WebSocketFrame setRsv2(boolean rsv2) {
+	public AbstractFrame setRsv2(boolean rsv2) {
 		// set bit 3
 		this.finRsvOp = (byte) ((finRsvOp & 0xDF) | (rsv2 ? 0x20 : 0x00));
 		return this;
 	}
 
-	public WebSocketFrame setRsv3(boolean rsv3) {
+	public AbstractFrame setRsv3(boolean rsv3) {
 		// set bit 4
 		this.finRsvOp = (byte) ((finRsvOp & 0xEF) | (rsv3 ? 0x10 : 0x00));
 		return this;

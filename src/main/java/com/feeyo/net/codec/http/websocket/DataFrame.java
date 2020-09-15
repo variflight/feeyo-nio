@@ -3,7 +3,7 @@ package com.feeyo.net.codec.http.websocket;
 /**
  * A Data Frame
  */
-public class DataFrame extends WebSocketFrame {
+public class DataFrame extends AbstractFrame {
 	//
 	protected DataFrame(byte opcode) {
 		super(opcode);

@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 import com.feeyo.net.codec.ProtocolException;
 
-public abstract class ControlFrame extends WebSocketFrame {
+public abstract class ControlFrame extends AbstractFrame {
 	/*
 	 * Maximum size of Control frame, per RFC 6455 
 	 */
@@ -77,7 +77,7 @@ public abstract class ControlFrame extends WebSocketFrame {
 	}
 
 	@Override
-	public WebSocketFrame setPayload(ByteBuffer buf) {
+	public AbstractFrame setPayload(ByteBuffer buf) {
 		if (buf != null && buf.remaining() > MAX_CONTROL_PAYLOAD) {
 			throw new ProtocolException("Control Payloads can not exceed " + MAX_CONTROL_PAYLOAD + " bytes in length.");
 		}

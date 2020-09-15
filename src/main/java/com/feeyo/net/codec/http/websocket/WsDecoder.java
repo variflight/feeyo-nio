@@ -24,7 +24,7 @@ public class WsDecoder implements Decoder<Frame> {
 	private int cursor = 0;
 	//
 	// Frame
-	private WebSocketFrame frame;
+	private AbstractFrame frame;
 	private boolean priorDataFrame;
 	//
 	// payload specific
