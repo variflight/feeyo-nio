@@ -6,7 +6,7 @@ import com.feeyo.net.codec.Decoder;
 import com.feeyo.net.codec.UnknownProtocolException;
 import com.feeyo.net.nio.util.BufferUtil;
 
-public class WsDecoder implements Decoder<Frame> {
+public class WebSocketDecoder implements Decoder<Frame> {
 	//
 	private enum State {
 		START, 

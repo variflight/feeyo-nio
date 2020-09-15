@@ -2,7 +2,7 @@ package com.feeyo.net.codec.http.websocket;
 
 import java.nio.ByteBuffer;
 
-public class WsEncoder {
+public class WebSocketEncoder {
 	
 	public ByteBuffer encode(Frame frame) {
 		//
