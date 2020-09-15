@@ -23,13 +23,16 @@ public class WsDecoder implements Decoder<Frame> {
 	private int cursor = 0;
 	//
 	// Frame
-	private AbstractFrame frame;
+	private Frame frame;
 	private boolean priorDataFrame;
 	//
 	// payload specific
 	private ByteBuffer payload;
 	private int payloadLength;
-	private PayloadProcessor maskProcessor = new DeMaskProcessor();
+	//
+	private byte[] maskBytes;
+	private int maskInt;
+	private int maskOffset;
 	//
 	private byte flagsInUse = 0x00;
 
@@ -44,53 +47,36 @@ public class WsDecoder implements Decoder<Frame> {
 				byte b = buffer.get();
 				boolean fin = ((b & 0x80) != 0);
 				byte opcode = (byte) (b & 0x0F);
-				if (!OpCode.isKnown(opcode)) {
+				if (!FrameType.isKnown(opcode)) {
 					throw new UnknownProtocolException("Unknown opcode: " + opcode);
 				}
 				//
 				// base framing flags
-				switch (opcode) {
-				case OpCode.TEXT:
-					frame = new TextFrame();
+				FrameType frameType = FrameType.from(opcode);
+				switch ( frameType ) {
+				case TEXT:
+				case BINARY:
+					frame = new Frame(opcode);
 					// data validation
 					if (priorDataFrame) {
-						throw new UnknownProtocolException("Unexpected " + OpCode.name(opcode) + " frame, was expecting CONTINUATION");
+						throw new UnknownProtocolException("Unexpected " + frameType + " frame, was expecting CONTINUATION");
 					}
 					break;
-				case OpCode.BINARY:
-					frame = new BinaryFrame();
-					// data validation
-					if (priorDataFrame) {
-						throw new UnknownProtocolException("Unexpected " + OpCode.name(opcode) + " frame, was expecting CONTINUATION");
-					}
-					break;
-				case OpCode.CONTINUATION:
-					frame = new ContinuationFrame();
+				case CONTINUATION:
+					frame = new Frame(opcode);
 					// continuation validation
 					if (!priorDataFrame) {
 						throw new UnknownProtocolException("CONTINUATION frame without prior !FIN");
 					}
 					// Be careful to use the original opcode
 					break;
-				case OpCode.CLOSE:
-					frame = new CloseFrame();
+				case CLOSE:
+				case PING:
+				case PONG:
+					frame = new Frame(opcode);
 					// control frame validation
 					if (!fin) {
-						throw new UnknownProtocolException("Fragmented Close Frame [" + OpCode.name(opcode) + "]");
-					}
-					break;
-				case OpCode.PING:
-					frame = new PingFrame();
-					// control frame validation
-					if (!fin) {
-						throw new UnknownProtocolException("Fragmented Ping Frame [" + OpCode.name(opcode) + "]");
-					}
-					break;
-				case OpCode.PONG:
-					frame = new PongFrame();
-					// control frame validation
-					if (!fin) {
-						throw new UnknownProtocolException("Fragmented Pong Frame [" + OpCode.name(opcode) + "]");
+						throw new UnknownProtocolException("Fragmented Frame [" + frameType + "]");
 					}
 					break;
 				}
@@ -155,7 +141,7 @@ public class WsDecoder implements Decoder<Frame> {
 						state = State.START;
 						return frame;
 					}
-					maskProcessor.reset(frame);
+					resetMask(frame.getMask());
 					state = State.PAYLOAD;
 				}
 				break;
@@ -176,7 +162,7 @@ public class WsDecoder implements Decoder<Frame> {
 							state = State.START;
 							return frame;
 						}
-						maskProcessor.reset(frame);
+						resetMask(frame.getMask());
 						state = State.PAYLOAD;
 					}
 				}
@@ -194,7 +180,7 @@ public class WsDecoder implements Decoder<Frame> {
 						state = State.START;
 						return frame;
 					}
-					maskProcessor.reset(frame);
+					resetMask(frame.getMask());
 					state = State.PAYLOAD;
 				} else {
 					state = State.MASK_BYTES;
@@ -214,7 +200,7 @@ public class WsDecoder implements Decoder<Frame> {
 						state = State.START;
 						return frame;
 					}
-					maskProcessor.reset(frame);
+					resetMask(frame.getMask());
 					state = State.PAYLOAD;
 				}
 				break;
@@ -223,10 +209,7 @@ public class WsDecoder implements Decoder<Frame> {
 			case PAYLOAD: {
 				frame.assertValid();
 				if (parsePayload(buffer)) {
-					// special check for close
-					if (frame.getOpCode() == OpCode.CLOSE) {
-						return null;
-					}
+					//
 					state = State.START;
 					// we have a frame!
 					return frame;
@@ -258,7 +241,10 @@ public class WsDecoder implements Decoder<Frame> {
 			buffer.limit(limit);
 			buffer.position(buffer.position() + window.remaining());
 			//
-			maskProcessor.process(window);
+			//
+			// Mask process
+			processMask( window );
+			//
 			if (window.remaining() == payloadLength) {
 				// We have the whole content, no need to copy.
 				frame.setPayload(window);
@@ -278,6 +264,44 @@ public class WsDecoder implements Decoder<Frame> {
 			}
 		}
 		return false;
+	}
+	
+	/*
+	 * 处理 Mask
+	 */
+	private void processMask(ByteBuffer payload) {
+		if (maskBytes == null) {
+			return;
+		}
+		int maskInt = this.maskInt;
+		int start = payload.position();
+		int end = payload.limit();
+		int offset = this.maskOffset;
+		int remaining;
+		while ((remaining = end - start) > 0) {
+			if (remaining >= 4 && (offset & 3) == 0) {
+				payload.putInt(start, payload.getInt(start) ^ maskInt);
+				start += 4;
+				offset += 4;
+			} else {
+				payload.put(start, (byte) (payload.get(start) ^ maskBytes[offset & 3]));
+				++start;
+				++offset;
+			}
+		}
+		maskOffset = offset;
+	}
+	
+	//
+	private void resetMask(byte[] mask) {
+		this.maskBytes = mask;
+		int maskInt = 0;
+		if (mask != null) {
+			for (byte maskByte : mask)
+				maskInt = (maskInt << 8) + (maskByte & 0xFF);
+		}
+		this.maskInt = maskInt;
+		this.maskOffset = 0;
 	}
 
 	private void assertSanePayloadLength(long len) throws UnknownProtocolException {
