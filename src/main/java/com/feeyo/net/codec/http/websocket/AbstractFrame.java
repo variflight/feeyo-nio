@@ -3,6 +3,7 @@ package com.feeyo.net.codec.http.websocket;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import com.feeyo.net.codec.UnknownProtocolException;
 import com.feeyo.net.nio.util.BufferUtil;
 
 /**
@@ -31,7 +32,7 @@ import com.feeyo.net.nio.util.BufferUtil;
  */
 public abstract class AbstractFrame implements Frame {
 	//
-	public static AbstractFrame copy(Frame original) {
+	public static AbstractFrame copy(Frame original) throws UnknownProtocolException {
 		AbstractFrame copy;
 		switch (original.getOpCode()) {
             case OpCode.BINARY:
@@ -96,7 +97,7 @@ public abstract class AbstractFrame implements Frame {
 		setOpCode(opcode);
 	}
     
-	public abstract void assertValid();
+	public abstract void assertValid() throws UnknownProtocolException;
 
 	protected void copyHeaders(Frame frame) {
 		finRsvOp = 0x00;
@@ -269,15 +270,8 @@ public abstract class AbstractFrame implements Frame {
 
 	/**
 	 * Set the data payload.
-	 * <p>
-	 * The provided buffer will be used as is, no copying of bytes performed.
-	 * <p>
-	 * The provided buffer should be flipped and ready to READ from.
-	 * 
-	 * @param buf
-	 *            the bytebuffer to set
 	 */
-	public AbstractFrame setPayload(ByteBuffer buf) {
+	public AbstractFrame setPayload(ByteBuffer buf) throws UnknownProtocolException {
 		data = buf;
 		return this;
 	}

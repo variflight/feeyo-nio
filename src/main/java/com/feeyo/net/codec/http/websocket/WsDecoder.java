@@ -3,7 +3,6 @@ package com.feeyo.net.codec.http.websocket;
 import java.nio.ByteBuffer;
 
 import com.feeyo.net.codec.Decoder;
-import com.feeyo.net.codec.ProtocolException;
 import com.feeyo.net.codec.UnknownProtocolException;
 import com.feeyo.net.nio.util.BufferUtil;
 
@@ -46,7 +45,7 @@ public class WsDecoder implements Decoder<Frame> {
 				boolean fin = ((b & 0x80) != 0);
 				byte opcode = (byte) (b & 0x0F);
 				if (!OpCode.isKnown(opcode)) {
-					throw new ProtocolException("Unknown opcode: " + opcode);
+					throw new UnknownProtocolException("Unknown opcode: " + opcode);
 				}
 				//
 				// base framing flags
@@ -55,23 +54,21 @@ public class WsDecoder implements Decoder<Frame> {
 					frame = new TextFrame();
 					// data validation
 					if (priorDataFrame) {
-						throw new ProtocolException(
-								"Unexpected " + OpCode.name(opcode) + " frame, was expecting CONTINUATION");
+						throw new UnknownProtocolException("Unexpected " + OpCode.name(opcode) + " frame, was expecting CONTINUATION");
 					}
 					break;
 				case OpCode.BINARY:
 					frame = new BinaryFrame();
 					// data validation
 					if (priorDataFrame) {
-						throw new ProtocolException(
-								"Unexpected " + OpCode.name(opcode) + " frame, was expecting CONTINUATION");
+						throw new UnknownProtocolException("Unexpected " + OpCode.name(opcode) + " frame, was expecting CONTINUATION");
 					}
 					break;
 				case OpCode.CONTINUATION:
 					frame = new ContinuationFrame();
 					// continuation validation
 					if (!priorDataFrame) {
-						throw new ProtocolException("CONTINUATION frame without prior !FIN");
+						throw new UnknownProtocolException("CONTINUATION frame without prior !FIN");
 					}
 					// Be careful to use the original opcode
 					break;
@@ -79,21 +76,21 @@ public class WsDecoder implements Decoder<Frame> {
 					frame = new CloseFrame();
 					// control frame validation
 					if (!fin) {
-						throw new ProtocolException("Fragmented Close Frame [" + OpCode.name(opcode) + "]");
+						throw new UnknownProtocolException("Fragmented Close Frame [" + OpCode.name(opcode) + "]");
 					}
 					break;
 				case OpCode.PING:
 					frame = new PingFrame();
 					// control frame validation
 					if (!fin) {
-						throw new ProtocolException("Fragmented Ping Frame [" + OpCode.name(opcode) + "]");
+						throw new UnknownProtocolException("Fragmented Ping Frame [" + OpCode.name(opcode) + "]");
 					}
 					break;
 				case OpCode.PONG:
 					frame = new PongFrame();
 					// control frame validation
 					if (!fin) {
-						throw new ProtocolException("Fragmented Pong Frame [" + OpCode.name(opcode) + "]");
+						throw new UnknownProtocolException("Fragmented Pong Frame [" + OpCode.name(opcode) + "]");
 					}
 					break;
 				}
@@ -109,19 +106,19 @@ public class WsDecoder implements Decoder<Frame> {
 						if (isRsv1InUse())
 							frame.setRsv1(true);
 						else
-							throw new ProtocolException("RSV1 not allowed to be set");
+							throw new UnknownProtocolException("RSV1 not allowed to be set");
 					}
 					if ((b & 0x20) != 0) {
 						if (isRsv2InUse())
 							frame.setRsv2(true);
 						else
-							throw new ProtocolException("RSV2 not allowed to be set");
+							throw new UnknownProtocolException("RSV2 not allowed to be set");
 					}
 					if ((b & 0x10) != 0) {
 						if (isRsv3InUse())
 							frame.setRsv3(true);
 						else
-							throw new ProtocolException("RSV3 not allowed to be set");
+							throw new UnknownProtocolException("RSV3 not allowed to be set");
 					}
 				}
 
@@ -242,7 +239,7 @@ public class WsDecoder implements Decoder<Frame> {
 		return null;
 	}
 
-	private boolean parsePayload(ByteBuffer buffer) {
+	private boolean parsePayload(ByteBuffer buffer) throws UnknownProtocolException {
 		if (payloadLength == 0) {
 			return true;
 		}
@@ -283,9 +280,9 @@ public class WsDecoder implements Decoder<Frame> {
 		return false;
 	}
 
-	private void assertSanePayloadLength(long len) {
+	private void assertSanePayloadLength(long len) throws UnknownProtocolException {
 		if (len > Integer.MAX_VALUE) {
-			throw new ProtocolException("[int-sane!] cannot handle payload lengths larger than " + Integer.MAX_VALUE);
+			throw new UnknownProtocolException("[int-sane!] cannot handle payload lengths larger than " + Integer.MAX_VALUE);
 		}
 	}
 

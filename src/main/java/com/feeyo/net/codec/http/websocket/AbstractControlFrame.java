@@ -3,7 +3,7 @@ package com.feeyo.net.codec.http.websocket;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import com.feeyo.net.codec.ProtocolException;
+import com.feeyo.net.codec.UnknownProtocolException;
 
 public abstract class AbstractControlFrame extends AbstractFrame {
 	/*
@@ -15,23 +15,23 @@ public abstract class AbstractControlFrame extends AbstractFrame {
 		super(opcode);
 	}
 
-	public void assertValid() {
+	public void assertValid() throws UnknownProtocolException {
 		if (isControlFrame()) {
 			if (getPayloadLength() > AbstractControlFrame.MAX_CONTROL_PAYLOAD) {
-				throw new ProtocolException("Desired payload length [" + getPayloadLength() 
+				throw new UnknownProtocolException("Desired payload length [" + getPayloadLength() 
 								+ "] exceeds maximum control payload length [" + MAX_CONTROL_PAYLOAD + "]");
 			}
 			if ((finRsvOp & 0x80) == 0) {
-				throw new ProtocolException("Cannot have FIN==false on Control frames");
+				throw new UnknownProtocolException("Cannot have FIN==false on Control frames");
 			}
 			if ((finRsvOp & 0x40) != 0) {
-				throw new ProtocolException("Cannot have RSV1==true on Control frames");
+				throw new UnknownProtocolException("Cannot have RSV1==true on Control frames");
 			}
 			if ((finRsvOp & 0x20) != 0) {
-				throw new ProtocolException("Cannot have RSV2==true on Control frames");
+				throw new UnknownProtocolException("Cannot have RSV2==true on Control frames");
 			}
 			if ((finRsvOp & 0x10) != 0) {
-				throw new ProtocolException("Cannot have RSV3==true on Control frames");
+				throw new UnknownProtocolException("Cannot have RSV3==true on Control frames");
 			}
 		}
 	}
@@ -77,9 +77,9 @@ public abstract class AbstractControlFrame extends AbstractFrame {
 	}
 
 	@Override
-	public AbstractFrame setPayload(ByteBuffer buf) {
+	public AbstractFrame setPayload(ByteBuffer buf) throws UnknownProtocolException {
 		if (buf != null && buf.remaining() > MAX_CONTROL_PAYLOAD) {
-			throw new ProtocolException("Control Payloads can not exceed " + MAX_CONTROL_PAYLOAD + " bytes in length.");
+			throw new UnknownProtocolException("Control Payloads can not exceed " + MAX_CONTROL_PAYLOAD + " bytes in length.");
 		}
 		return super.setPayload(buf);
 	}
