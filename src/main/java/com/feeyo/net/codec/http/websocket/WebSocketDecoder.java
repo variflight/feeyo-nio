@@ -51,20 +51,17 @@ public class WebSocketDecoder implements Decoder<Frame> {
 					frame.setFin(fin);
 					//
 					if ((b & 0x70) != 0) {
-						//
 						if ((b & 0x40) != 0) {
 							frame.setRsv1(true);
 						}
-						//
 						if ((b & 0x20) != 0) {
 							frame.setRsv2(true);
 						}
-						//
 						if ((b & 0x10) != 0) {
 							frame.setRsv3(true);
 						}
 					}
-	
+					//
 					state = State.PAYLOAD_LEN;
 					break;
 				}
@@ -73,20 +70,18 @@ public class WebSocketDecoder implements Decoder<Frame> {
 					byte b = buffer.get();
 					frame.setMasked((b & 0x80) != 0);
 					payloadLength = (byte) (0x7F & b);
-					if (payloadLength == 127) // 0x7F
-					{
+					if (payloadLength == 127) {
 						// length 8 bytes (extended payload length)
 						payloadLength = 0;
 						state = State.PAYLOAD_LEN_BYTES;
 						cursor = 8;
-						break; 
-					} else if (payloadLength == 126) // 0x7E
-					{
+						break;
+					} else if (payloadLength == 126) {
 						// length 2 bytes (extended payload length)
 						payloadLength = 0;
 						state = State.PAYLOAD_LEN_BYTES;
 						cursor = 2;
-						break; 
+						break;
 					}
 					
 					if (payloadLength > Integer.MAX_VALUE) 
