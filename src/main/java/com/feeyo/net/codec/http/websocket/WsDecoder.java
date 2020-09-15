@@ -238,8 +238,8 @@ public class WsDecoder implements Decoder<Frame> {
 			}
 			}
 		}
-
-		return frame;
+		//
+		return null;
 	}
 
 	private boolean parsePayload(ByteBuffer buffer) {
