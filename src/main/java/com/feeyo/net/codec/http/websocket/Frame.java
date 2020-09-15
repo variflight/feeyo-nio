@@ -3,7 +3,7 @@ package com.feeyo.net.codec.http.websocket;
 import java.nio.ByteBuffer;
 
 /**
- * An immutable websocket frame.
+ * An immutable WebSocket frame.
  */
 public interface Frame {
 	//

@@ -1,8 +1,9 @@
 package com.feeyo.net.codec.http.websocket;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+
+import com.feeyo.net.nio.util.BufferUtil;
 
 /**
  * A Base Frame as seen in <a href="https://tools.ietf.org/html/rfc6455#section-5.2">RFC 6455. Sec 5.2</a>
@@ -170,7 +171,11 @@ public abstract class WebSocketFrame implements Frame {
 	public ByteBuffer getPayload() {
 		return data;
 	}
-    
+	
+	public String getPayloadAsUTF8() {
+		return BufferUtil.toUTF8String(getPayload());
+	}
+
 	@Override
 	public int getPayloadLength() {
 		if (data == null) {
