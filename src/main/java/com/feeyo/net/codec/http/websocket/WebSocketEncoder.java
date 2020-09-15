@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 public class WebSocketEncoder {
 	//
 	// @see https://stackoverflow.com/questions/25189006/how-to-frame-websocket-data-in-javascript
+	//
 	public ByteBuffer encode(Frame frame) {
 		int len = frame.getPayloadLength();
 		byte header0 = (byte) (0x8f & (frame.getOpCode() | 0xf0));
