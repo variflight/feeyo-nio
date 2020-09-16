@@ -6,10 +6,10 @@ public class WebSocketEncoder {
 	//
 	// @see https://stackoverflow.com/questions/25189006/how-to-frame-websocket-data-in-javascript
 	//
-	public ByteBuffer encode(Frame frame) {
+	public ByteBuffer encodeToByteBuffer(Frame frame) {
+		ByteBuffer buffer = null;
 		int len = frame.getPayloadLength();
 		byte header0 = (byte) (0x8f & (frame.getOpCode() | 0xf0));
-		ByteBuffer buffer = null;
 		if (len <= 125) {
 			buffer = ByteBuffer.allocate(2 + len);
 			buffer.put(header0);
@@ -40,6 +40,7 @@ public class WebSocketEncoder {
 		for (int i = 0; i < frame.getPayloadLength(); i++) {
 			buffer.put(frame.getPayload().get(i));
 		}
+		//
 		return buffer;
 	}
 
