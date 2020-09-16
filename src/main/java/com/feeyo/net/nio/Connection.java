@@ -362,7 +362,6 @@ public class Connection extends ClosableConnection {
 		}
 	}
 	
-	
 	private void clearSelectionKey() {
 		try {
 			SelectionKey key = this.processKey;
@@ -374,7 +373,6 @@ public class Connection extends ClosableConnection {
 			LOGGER.warn("clear selector keys err:" + e);
 		}
 	}
-
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -402,10 +400,8 @@ public class Connection extends ClosableConnection {
 	public void close(String reason) {
 		//
 		if ( isClosed.compareAndSet(false, true) ) {
-			
 			this.closeSocket();
 			this.cleanup();		
-			
 			//
 			NetSystem.getInstance().removeConnection(this);
 			if ( this.handler != null )
