@@ -189,20 +189,16 @@ public class Frame {
 	/**
 	 * Set the data payload.
 	 */
-	public Frame setPayload(ByteBuffer buf) throws UnknownProtocolException {
-		if (isControlFrame()) {
-			if (buf != null && buf.remaining() > MAX_CONTROL_PAYLOAD) 
-				throw new UnknownProtocolException("Control Payloads can not exceed " + MAX_CONTROL_PAYLOAD + " bytes in length.");
-		}
+	public Frame setPayload(ByteBuffer buf)  {
 		data = buf;
 		return this;
 	}
 	
-	public Frame setPayload(String str) throws UnknownProtocolException {
+	public Frame setPayload(String str) {
 		return setPayload(ByteBuffer.wrap(str.getBytes(StandardCharsets.UTF_8)));
 	}
 	
-	public Frame setPayload(byte[] bytes) throws UnknownProtocolException {
+	public Frame setPayload(byte[] bytes) {
 		return setPayload(ByteBuffer.wrap(bytes));
 	}
 
