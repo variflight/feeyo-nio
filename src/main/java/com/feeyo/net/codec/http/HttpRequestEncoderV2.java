@@ -4,6 +4,7 @@ import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+import com.feeyo.buffer.BufferPool;
 import com.feeyo.net.nio.NetSystem;
 
 public class HttpRequestEncoderV2 {
@@ -36,25 +37,26 @@ public class HttpRequestEncoderV2 {
 			return null;
 		//
 		// Use direct byte buffer
+		BufferPool bufferPool = NetSystem.getInstance().getBufferPool();
 		ByteBuffer buffer = null;
 		try {
 	        // 
 	    	byte[] header = getHeaderBytes( request );
 	    	byte[] content = request.getContent();
 	        if( content != null ) {
-	        	buffer = NetSystem.getInstance().getBufferPool().allocate( header.length + content.length );
+	        	buffer = bufferPool.allocate( header.length + content.length );
     			buffer.put( header );
     			buffer.put( content );
     			return buffer;
 	        } else {
-	        	buffer = NetSystem.getInstance().getBufferPool().allocate( header.length );
+	        	buffer = bufferPool.allocate( header.length );
     			buffer.put( header );
     			return buffer;
 	        }
 	        
 		} catch(BufferOverflowException e) {		
 			if ( buffer != null )
-				NetSystem.getInstance().getBufferPool().recycle( buffer );
+				bufferPool.recycle( buffer );
 			throw e;
 		}
 	}
