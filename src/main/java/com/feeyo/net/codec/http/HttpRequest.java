@@ -1,9 +1,14 @@
 package com.feeyo.net.codec.http;
 
+import java.util.Collections;
+import java.util.Map;
+
 public class HttpRequest extends HttpMessage {
 
     private final String method;
     private final String uri;
+    private String path;
+    private Map<String, String> parameters;
 
     public HttpRequest(String method, String uri) {
         super();
@@ -27,7 +32,29 @@ public class HttpRequest extends HttpMessage {
     public String getUri() {
         return uri;
     }
+    
+    public String getPath() {
+    	if ( uri == null ) {
+    		return null;
+    	}
+    	if ( path == null ) {
+    		this.path = UriUtil.parsePath(false, uri);
+    	}
+    	return path;
+    }
 
+    //
+    public Map<String, String> getParameters() {
+    	if ( uri == null ) {
+    		return Collections.emptyMap();
+    	}
+    	if ( parameters == null ) {
+    		this.parameters = UriUtil.parseParameters(false, uri);
+    	}
+    	return parameters;
+    }
+    
+    
     // split会使用ArrayList+SubList, 性能不好.
     public static HttpRequest parseFromBytes(byte[] bytes) {
         int aStart, aEnd;
