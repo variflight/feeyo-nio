@@ -34,10 +34,7 @@ public class HttpRequest extends HttpMessage {
     }
     
     public String getPath() {
-    	if ( uri == null ) {
-    		return null;
-    	}
-    	if ( path == null ) {
+    	if ( uri != null && path == null ) {
     		this.path = UriUtil.parsePath(false, uri);
     	}
     	return path;
@@ -45,16 +42,16 @@ public class HttpRequest extends HttpMessage {
 
     //
     public Map<String, String> getParameters() {
-    	if ( uri == null ) {
-    		return Collections.emptyMap();
-    	}
-    	if ( parameters == null ) {
+    	if ( uri != null && parameters == null ) {
     		this.parameters = UriUtil.parseParameters(false, uri);
     	}
-    	return parameters;
+    	if ( parameters != null ) {
+    		return parameters;
+    	} 
+    	return Collections.emptyMap();
     }
     
-    
+    //
     // split会使用ArrayList+SubList, 性能不好.
     public static HttpRequest parseFromBytes(byte[] bytes) {
         int aStart, aEnd;
