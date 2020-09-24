@@ -138,13 +138,12 @@ public class Connection extends ClosableConnection {
 
 	@Override
 	public void write(ByteBuffer data) {
-		
+		//
 		this.writeQueue.offer( data );
-		
+		//
 		try {
 			this.doNextWriteCheck();
-			
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOGGER.error("write err:", e);
 			this.close("write err:" + e);
 			//throw new IOException( e );
