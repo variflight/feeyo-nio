@@ -51,8 +51,9 @@ public class HttpRequest extends HttpMessage {
     	return Collections.emptyMap();
     }
     
-    //
-    // split会使用ArrayList+SubList, 性能不好.
+    /*
+     * TODO: split会使用ArrayList+SubList, 性能不好.
+     */
     public static HttpRequest parseFromBytes(byte[] bytes) {
         int aStart, aEnd;
         int bStart, bEnd;
