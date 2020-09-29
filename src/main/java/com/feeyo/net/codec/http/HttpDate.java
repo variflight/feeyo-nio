@@ -11,11 +11,7 @@ import java.util.TimeZone;
  * Best-effort parser for HTTP dates.
  */
 public final class HttpDate {
-
-    /**
-     * Most websites serve cookies in the blessed format. Eagerly create the parser to ensure such
-     * cookies are on the fast path.
-     */
+	//
     private static final ThreadLocal<DateFormat> STANDARD_DATE_FORMAT = new ThreadLocal<DateFormat>() {
         @Override protected DateFormat initialValue() {
             DateFormat rfc1123 = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
