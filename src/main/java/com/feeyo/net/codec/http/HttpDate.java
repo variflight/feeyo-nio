@@ -11,7 +11,7 @@ import java.util.TimeZone;
  * Parser for HTTP dates.
  */
 public final class HttpDate {
-	
+	//
 	// Format "EEE, dd MMM yyyy HH:mm:ss 'GMT'" for cookies
 	//
     private static final ThreadLocal<DateFormat> STANDARD_DATE_FORMAT = new ThreadLocal<DateFormat>() {
