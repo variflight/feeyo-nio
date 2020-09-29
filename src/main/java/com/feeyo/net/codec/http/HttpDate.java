@@ -8,7 +8,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * Best-effort parser for HTTP dates.
+ * Parser for HTTP dates.
  */
 public final class HttpDate {
 	
