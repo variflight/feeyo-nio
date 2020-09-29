@@ -12,7 +12,7 @@ import java.util.TimeZone;
  */
 public final class HttpDate {
 	
-	// Format "EEE, dd-MMM-yy HH:mm:ss 'GMT'" for cookies
+	// Format "EEE, dd MMM yyyy HH:mm:ss 'GMT'" for cookies
 	//
     private static final ThreadLocal<DateFormat> STANDARD_DATE_FORMAT = new ThreadLocal<DateFormat>() {
         @Override protected DateFormat initialValue() {
