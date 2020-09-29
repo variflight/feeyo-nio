@@ -11,11 +11,13 @@ import java.util.TimeZone;
  * Best-effort parser for HTTP dates.
  */
 public final class HttpDate {
+	
+	// Format "EEE, dd-MMM-yy HH:mm:ss 'GMT'" for cookies
 	//
     private static final ThreadLocal<DateFormat> STANDARD_DATE_FORMAT = new ThreadLocal<DateFormat>() {
         @Override protected DateFormat initialValue() {
             DateFormat rfc1123 = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-            rfc1123.setTimeZone(TimeZone.getTimeZone("UTC"));
+            rfc1123.setTimeZone(TimeZone.getTimeZone("GMT"));
             return rfc1123;
         }
     };

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An HttpCookie object represents an HTTP cookie
+ * TODO consider replacing this with java.net.HttpCookie (once it supports RFC6265)
  */
 public class HttpCookie {
 	
@@ -193,7 +193,7 @@ public class HttpCookie {
         // Append version
 		if (_version == 1)
 			buf.append(";Version=1");
-		else if (version > 1)
+		else if (_version > 1)
 			buf.append(";Version=").append(version);
 
 		// Append path
@@ -219,7 +219,7 @@ public class HttpCookie {
                 buf.append(HttpDate.format(System.currentTimeMillis() + 1000L * maxAge));
 
             // for v1 cookies, also send max-age
-			if (version >= 1) {
+			if (_version >= 1) {
                 buf.append(";Max-Age=");
                 buf.append(maxAge);
             }
