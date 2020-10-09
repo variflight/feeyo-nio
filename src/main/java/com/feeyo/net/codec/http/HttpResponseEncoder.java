@@ -19,76 +19,66 @@ public class HttpResponseEncoder {
 	private static final String CRLF = "\r\n"; 	
 	private static final String SP = " "; 		
 	private static final String COLON = ":"; 	
-	
-	
+	//
 	private byte[] getHeaderBytes(HttpResponse response) {
 		// headline
-		StringBuffer headerSb = new StringBuffer();
-		headerSb.append( response.getHttpVersion() ).append(SP);
-        headerSb.append( response.getStatusCode() ).append(SP);
-        headerSb.append( response.getReasonPhrase() ).append(CRLF);
-        
-       // TODO: 修正 Content-Length
-       if ( response.headers.get( HttpHeaderNames.CONTENT_LENGTH ) == null ) {
-    	   byte[] content = response.getContent();
-    	   if ( content == null ) {
-    		   response.headers().put(HttpHeaderNames.CONTENT_LENGTH, "0");
-    	   } else {
-    		   response.headers().put(HttpHeaderNames.CONTENT_LENGTH, String.valueOf( content.length ) );   
-    	   }
-       }
-		   
-        // headers
-        for (Map.Entry<String, String> h : response.headers().entrySet()) {
+		StringBuilder headerSb = new StringBuilder(64);
+		headerSb.append(response.getHttpVersion()).append(SP);
+		headerSb.append(response.getStatusCode()).append(SP);
+		headerSb.append(response.getReasonPhrase()).append(CRLF);
+		//
+		// TODO: 修正 Content-Length
+		if (response.headers.get(HttpHeaderNames.CONTENT_LENGTH) == null) {
+			byte[] content = response.getContent();
+			if (content == null) {
+				response.headers().put(HttpHeaderNames.CONTENT_LENGTH, "0");
+			} else {
+				response.headers().put(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(content.length));
+			}
+		}
+		// headers
+		for (Map.Entry<String, String> h : response.headers().entrySet()) {
 			headerSb.append(h.getKey()).append(COLON).append(SP);
 			headerSb.append(h.getValue()).append(CRLF);
 		}
-        headerSb.append(CRLF);
-        
-        return headerSb.toString().getBytes();
-		
+		headerSb.append(CRLF);
+		return headerSb.toString().getBytes();
 	}
 	
 	public byte[] encodeToByteArray(HttpResponse response) {	
 		if ( response == null )
 			return null;
-		
-		// header
-    	byte[] header = getHeaderBytes( response );
-    	
-		// content
-    	byte[] content = response.getContent();
-        if( content != null ) {
-        	byte[] allBytes = new byte[ header.length + content.length  ]; 
-	        System.arraycopy(header, 0, allBytes, 0, header.length);
-	        System.arraycopy(content, 0, allBytes, header.length, content.length);
+		//
+    	byte[] headerBytes = getHeaderBytes( response );
+    	byte[] contentBytes = response.getContent();
+        if( contentBytes != null ) {
+        	byte[] allBytes = new byte[ headerBytes.length + contentBytes.length  ]; 
+	        System.arraycopy(headerBytes, 0, allBytes, 0, headerBytes.length);
+	        System.arraycopy(contentBytes, 0, allBytes, headerBytes.length, contentBytes.length);
 	        return allBytes;
-	        
         } else {
-        	return header;
+        	return headerBytes;
         }
 	}
 	
 	public ByteBuffer encodeToByteBuffer(HttpResponse response) {
 		if ( response == null )
 			return null;
-		
+		//
 		// Use direct byte buffer
 		ByteBuffer buffer = null;
 		try {
-	        // 
-	    	byte[] header = getHeaderBytes( response );
-	    	byte[] content = response.getContent();
-	        if( content != null ) {
-	        	buffer = NetSystem.getInstance().getBufferPool().allocate( header.length + content.length );
-    			buffer.put( header );
-    			buffer.put( content );
+	    	byte[] headerBytes = getHeaderBytes( response );
+	    	byte[] contentBytes = response.getContent();
+	        if( contentBytes != null ) {
+	        	buffer = NetSystem.getInstance().getBufferPool().allocate( headerBytes.length + contentBytes.length );
+    			buffer.put( headerBytes );
+    			buffer.put( contentBytes );
     			return buffer;
 		        
 	        } else {
-	        	//
-	        	buffer = NetSystem.getInstance().getBufferPool().allocate( header.length );
-    			buffer.put( header );
+	        	buffer = NetSystem.getInstance().getBufferPool().allocate( headerBytes.length );
+    			buffer.put( headerBytes );
     			return buffer;
 	        }
 	        
