@@ -74,10 +74,10 @@ public class HttpRequest extends HttpMessage {
 
     @Override
     public String toString() {
-        StringBuilder buf = new StringBuilder();
-        buf.append(httpVersion).append(" ");
-        buf.append(method).append("\r\n");
-        buf.append(uri).append("\r\n");
-        return buf.toString();
+        StringBuilder sb = new StringBuilder(32);
+        sb.append(httpVersion).append(" ");
+        sb.append(method).append("\r\n");
+        sb.append(uri).append("\r\n");
+        return sb.toString();
     }
 }

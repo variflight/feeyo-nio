@@ -40,19 +40,15 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 
 	@Override
 	public HttpResponse decode(byte[] data) throws UnknownProtocolException {
-
 		if (data == null || data.length == 0)
 			return null;
-
 		//
 		this.data = data;
 		this.dataOffset = 0;
 
 		//
 		for (; ; ) {
-
 			switch (state) {
-
 				case START: {
 					if (skipControlCharacters()) {
 						break;
@@ -60,7 +56,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 						return null;
 					}
 				}
-
 				case RESPONSE_VERSION: {
 					if (parseResponseVersion()) {
 						break;
@@ -68,7 +63,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 						return null;
 					}
 				}
-
 				case SPACE1: {
 					HttpTokens.Token t = next();
 					if (t == null)
@@ -77,7 +71,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 					switch (t.getType()) {
 						case SPACE:
 							break;
-
 						case ALPHA:
 						case DIGIT:
 						case TCHAR:
@@ -88,13 +81,11 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 							state = State.STATUS;
 							responseStatus = t.getByte() - '0';
 							break;
-
 						default:
 							throw new UnknownProtocolException("No URI");
 					}
 					break;
 				}
-
 				case STATUS: {
 					if (parseStatus()) {
 						break;
@@ -102,7 +93,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 						return null;
 					}
 				}
-
 				case SPACE2: {
 					HttpTokens.Token t = next();
 					if (t == null)
@@ -111,7 +101,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 					switch (t.getType()) {
 						case SPACE:
 							break;
-
 						case ALPHA:
 						case DIGIT:
 						case TCHAR:
@@ -120,17 +109,14 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 							charCache.append(t.getChar());
 							state = State.REASON;
 							break;
-
 						case LF:
 							state = State.HEADER;
 							break;
-
 						default:
 							throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
 					}
 					break;
 				}
-
 				case REASON: {
 					if (parseReason()) {
 						break;
@@ -138,7 +124,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 						return null;
 					}
 				}
-
 				case HEADER: {
 					if (parseFields()) {
 						break;
@@ -146,9 +131,7 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 						return null;
 					}
 				}
-
 				case CONTENT: {
-					//
 					if (response == null)
 						throw new UnknownProtocolException("Http response may be not null");
 
@@ -170,7 +153,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 						return null;
 					}
 				}
-
 				case CHUNKED_CONTENT: {
 					HttpTokens.Token t = next();
 					if (t == null)
@@ -178,12 +160,10 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 					switch (t.getType()) {
 						case LF:
 							break;
-
 						case DIGIT:
 							contentLength = t.getHexDigit();
 							state = State.CHUNK_SIZE;
 							break;
-
 						case ALPHA:
 							if (t.isHexDigit()) {
 								contentLength = t.getHexDigit();
@@ -191,18 +171,15 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 								break;
 							}
 							throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
-
 						default:
 							throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
 					}
 					break;
 				}
-
 				case CHUNK_SIZE: {
 					HttpTokens.Token t = next();
 					if (t == null)
 						break;
-
 					switch (t.getType()) {
 						case LF:
 							if (contentLength == 0) {
@@ -215,10 +192,8 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 								state = State.CHUNK;
 							}
 							break;
-
 						case SPACE:
 							break;
-
 						default:
 							if (t.isHexDigit()) {
 								contentLength = contentLength * 16 + t.getHexDigit();
@@ -228,12 +203,10 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 					}
 					break;
 				}
-
 				case CHUNK: {
 					//
 					if (contentLength <= 0)
 						return null;
-
 					int remain = data.length - dataOffset;
 					int require = contentLength - chunkOffset;
 					if (require <= remain) {
@@ -241,7 +214,7 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 						int chunkCount = Math.min(require, remain);
 						contentBuffer.add(data, dataOffset, chunkCount);
 						dataOffset += chunkCount;
-
+						//
 						// 每次的Chunk需要重新读size
 						contentLength = 0;
 						chunkOffset = 0;
@@ -252,10 +225,8 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 						chunkOffset += remain;
 						dataOffset += remain;
 					}
-
 					break;
 				}
-
 				case EOF_CONTENT: {
 					//
 					if (response == null)
@@ -271,7 +242,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 					state = State.CONTENT_END;
 					break;
 				}
-
 				default:
 					HttpResponse httpResponse = response;
 					reset();
@@ -285,7 +255,7 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 			HttpTokens.Token t = next();
 			if (t == null)
 				return false;
-
+			//
 			switch (t.getType()) {
 				case LF:
 					String reason = charCache.toString();
@@ -293,7 +263,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 					charCache.setLength(0);
 					state = State.HEADER;
 					return true;
-
 				case ALPHA:
 				case DIGIT:
 				case TCHAR:
@@ -304,7 +273,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 				case HTAB:
 					charCache.append(t.getChar());
 					break;
-
 				default:
 					throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
 			}
@@ -317,22 +285,19 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 			HttpTokens.Token t = next();
 			if (t == null)
 				return false;
-
+			//
 			switch (t.getType()) {
 				case SPACE:
 					state = State.SPACE2;
 					return true;
-
 				case LF:
 					state = State.HEADER;
 					return true;
-
 				case DIGIT:
 					responseStatus = responseStatus * 10 + (t.getByte() - '0');
 					if (responseStatus >= 1_000)
 						throw new UnknownProtocolException("Bad status");
 					break;
-
 				default:
 					throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
 			}
@@ -341,23 +306,20 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 	}
 
 	private boolean parseResponseVersion() throws UnknownProtocolException {
-
 		while (state == State.RESPONSE_VERSION) {
 			HttpTokens.Token t = next();
 			if (t == null)
 				return false;
-
+			//
 			switch (t.getType()) {
 				case SPACE:
 					httpVersion = HttpVersion.find(charCache);
 					if (httpVersion == null) {
 						throw new UnknownProtocolException("Unsupported http version " + charCache);
 					}
-
 					charCache.setLength(0);
 					state = State.SPACE1;
 					return true;
-
 				case ALPHA:
 				case DIGIT:
 				case TCHAR:
@@ -365,7 +327,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 				case COLON:
 					charCache.append(t.getChar());
 					break;
-
 				default:
 					throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
 			}
@@ -377,11 +338,10 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 	private boolean skipControlCharacters() throws UnknownProtocolException {
 		//
 		while (state == State.START) {
-
 			HttpTokens.Token t = next();
 			if (t == null)
 				return false;
-
+			//
 			switch (t.getType()) {
 				case ALPHA:
 				case DIGIT:
@@ -396,7 +356,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 				case SPACE:
 				case HTAB:
 					throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
-
 				default:
 					break;
 			}
@@ -408,31 +367,26 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 	private boolean parseFields() throws UnknownProtocolException {
 
 		while (state == State.HEADER) {
-
 			HttpTokens.Token t = next();
 			if (t == null)
 				return false;
-
+			//
 			switch (fieldState) {
-
 				case FIELD:
 					switch (t.getType()) {
 						case SPACE:
 						case HTAB:
 							break;
-
 						case COLON:
 							fieldState = FieldState.VALUE;
 							headerName = charCache.toString();
 							charCache.setLength(0);
 							break;
-
 						case ALPHA:
 						case DIGIT:
 						case TCHAR:
 							charCache.append(t.getChar());
 							break;
-
 						case LF:
 							if (transferEncodingChunked) {
 								state = State.CHUNKED_CONTENT;
@@ -442,7 +396,6 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 								state = State.CONTENT;
 							}
 							return true;
-
 						default:
 							throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
 					}
@@ -455,11 +408,9 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 							charCache.setLength(0);
 							fieldState = FieldState.FIELD;
 							break;
-
 						case SPACE:
 						case HTAB:
 							break;
-
 						case ALPHA:
 						case DIGIT:
 						case TCHAR:
@@ -468,17 +419,14 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 						case OTEXT:
 							charCache.append(t.getChar());
 							break;
-
 						default:
 							throw new UnknownProtocolException(String.format("Illegal character %s", t));
 					}
 					break;
-
 				default:
 					throw new IllegalStateException(state.toString());
 			}
 		}
-
 		return false;
 	}
 
@@ -486,7 +434,7 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 	// Content-Encoding: gzip 表示服务端响应使用的压缩模式
 	// Transfer-Encoding: gzip, chunked 可以支持多个值(如果存在chunked, 必须在最后)
 	private void addHttpHeader(String name, String value) throws UnknownProtocolException {
-
+		//
 		// Content-Encoding 和 Transfer-Encoding 二者经常会结合来用, 比如: transfer-encoding: gzip, chunked
 		if ("transfer-encoding".equalsIgnoreCase(name)) {
 
@@ -510,13 +458,12 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 	}
 
 	private HttpTokens.Token next() throws UnknownProtocolException {
-
 		if (!hasRemaining()) {
 			return null;
 		}
+		//
 		byte ch = data[dataOffset++];
 		HttpTokens.Token t = HttpTokens.TOKENS[0xff & ch];
-
 		switch (t.getType()) {
 			case CNTL:
 				throw new UnknownProtocolException(String.format("Illegal character %s", t));
@@ -526,12 +473,12 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 			case CR:
 				if (hasCR)
 					throw new UnknownProtocolException("Bad EOL");
-
+				//
 				hasCR = true;
 				if (hasRemaining()) {
 					return next();
 				}
-
+				//
 				return null;
 			case ALPHA:
 			case DIGIT:
@@ -544,11 +491,9 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 				if (hasCR)
 					throw new UnknownProtocolException("Bad EOL");
 				break;
-
 			default:
 				break;
 		}
-
 		return t;
 	}
 
@@ -577,17 +522,19 @@ public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
 		transferEncodingChunked = false;
 	}
 
-	// States流转
-	// 1. START -- RESPONSE_VERSION -- SPACE1 -- STATUS -- SPACE2 -- REASON -- HEADER
-	// 1.1 Transfer-Encoding = chunked
-	//      CHUNKED_CONTENT -- CHUNK_SIZE -- CHUNK -- CONTENT_END
-	//
-	// 1.2 Transfer-Encoding = null && Content-Length != null
-	//      CONTENT -- CONTENT_END
-	//
-	// 1.3 Transfer-Encoding = null && Content-Length = null(短链接, 发送多少字节长度就是多少)
-	//      EOF_CONTENT -- CONTENT_END
-	//
+	/*  
+	 *  States流转
+	 *   1. START -- RESPONSE_VERSION -- SPACE1 -- STATUS -- SPACE2 -- REASON -- HEADER
+	 *   1.1 Transfer-Encoding = chunked
+	 *   		CHUNKED_CONTENT -- CHUNK_SIZE -- CHUNK -- CONTENT_END
+	 *   
+	 *   1.2 Transfer-Encoding = null && Content-Length != null
+	 *   		CONTENT -- CONTENT_END
+	 *   
+	 *   1.3 Transfer-Encoding = null && Content-Length = null(短链接, 发送多少字节长度就是多少)
+	 *   		EOF_CONTENT -- CONTENT_END
+	 *   
+	 */
 	public enum State {
 		START,
 		RESPONSE_VERSION,

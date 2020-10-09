@@ -577,18 +577,20 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
         contentLength = -1;
         transferEncodingChunked = false;
     }
-
-    // States流转
-    // 1. START -- METHOD -- SPACE1 -- URI -- SPACE2 -- REQUEST_VERSION -- HEADER
-    // 1.1 Transfer-Encoding = chunked
-    //      CHUNKED_CONTENT -- CHUNK_SIZE -- CHUNK -- CONTENT_END
-    //
-    // 1.2 Transfer-Encoding = null && Content-Length != null
-    //      CONTENT -- CONTENT_END
-    //
-    // 1.3 Transfer-Encoding = null && Content-Length = null(短链接, 发送多少字节长度就是多少)
-    //      EOF_CONTENT -- CONTENT_END
-    //
+    
+    /*  
+	 *  States流转
+	 *   1. START -- RESPONSE_VERSION -- SPACE1 -- STATUS -- SPACE2 -- REASON -- HEADER
+	 *   1.1 Transfer-Encoding = chunked
+	 *   		CHUNKED_CONTENT -- CHUNK_SIZE -- CHUNK -- CONTENT_END
+	 *   
+	 *   1.2 Transfer-Encoding = null && Content-Length != null
+	 *   		CONTENT -- CONTENT_END
+	 *   
+	 *   1.3 Transfer-Encoding = null && Content-Length = null(短链接, 发送多少字节长度就是多少)
+	 *   		EOF_CONTENT -- CONTENT_END
+	 *   
+	 */
     public enum State {
         START,
         METHOD,

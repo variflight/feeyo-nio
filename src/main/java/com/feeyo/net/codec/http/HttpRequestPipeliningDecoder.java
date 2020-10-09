@@ -37,9 +37,8 @@ public class HttpRequestPipeliningDecoder implements Decoder<List<HttpRequest>> 
      *                  | extension-method
      *   extension-method = token
 	 */
-	private static final Set<String> METHOD_SET = ImmutableSet.of(
-			"OPTIONS", "GET", "HEAD", "POST", 
-			"PUT", "DELETE", "TRACE", "CONNECT");
+	private static final Set<String> METHOD_SET = ImmutableSet.of("OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE",
+			"TRACE", "CONNECT");
 	
 	private static final int MAX_PACKET_SIZE = 1024 * 1024 * 32;
 
@@ -73,7 +72,6 @@ public class HttpRequestPipeliningDecoder implements Decoder<List<HttpRequest>> 
 		
 		//
 		List<HttpRequest> requestList = null;
-		
 		//
 		try {
 			
@@ -188,8 +186,6 @@ public class HttpRequestPipeliningDecoder implements Decoder<List<HttpRequest>> 
 						} 
 						//
 						requestList.add( request );
-						
-						
 						//
 						int totalLength = dataBuffer.getByteCount();
 						int remainingLength = totalLength - offset;
@@ -278,7 +274,7 @@ public class HttpRequestPipeliningDecoder implements Decoder<List<HttpRequest>> 
 				end = i;
 				break;
 			}
-			
+			//
 			// Boundary check 
 			if ( !chunk.isInBoundary(i) )
 				chunk = chunk.getNext();
