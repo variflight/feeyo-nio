@@ -9,9 +9,12 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.feeyo.net.nio.util.TimeSamplingSLF4JLogger;
 
 /**
  * @author wuzh
@@ -20,7 +23,8 @@ import org.slf4j.LoggerFactory;
 public final class NIOAcceptor extends Thread {
 	
 	private static Logger LOGGER = LoggerFactory.getLogger( NIOAcceptor.class );
-	
+	private static Logger THROTTLED_LOGGER = new TimeSamplingSLF4JLogger(LOGGER, 100, TimeUnit.MILLISECONDS);	// 间隔100毫秒
+	//
 	private final int port;
 	private volatile Selector selector;
 	private final ServerSocketChannel serverChannel;
@@ -107,7 +111,7 @@ public final class NIOAcceptor extends Thread {
 			reactor.postRegister(c);
 
 		} catch (Exception e) {
-			LOGGER.error(getName(), e);
+			THROTTLED_LOGGER.warn(getName(), e);
 			closeChannel(channel);
 		}
 	}

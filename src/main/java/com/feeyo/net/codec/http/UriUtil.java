@@ -11,7 +11,6 @@ public class UriUtil {
 	public static String parsePath(String uriString) {
 		return parsePath(true, uriString);
 	}
-    
     ///
 	public static String parsePath(boolean findSchemeSeparator, String uriString) {
 		//
@@ -75,13 +74,87 @@ public class UriUtil {
 		return uriString.substring(pathStart, pathEnd);
 	}
 	
-	//
+//	
+//    private static byte convertHexDigit( byte b ) {
+//        if ((b >= '0') && (b <= '9')) return (byte)(b - '0');
+//        if ((b >= 'a') && (b <= 'f')) return (byte)(b - 'a' + 10);
+//        if ((b >= 'A') && (b <= 'F')) return (byte)(b - 'A' + 10);
+//        throw new IllegalArgumentException("not hex: "+ Character.valueOf((char)b));
+//    }
+//
+//	private static void putMapEntry(Map<String, String[]> map, String name, String value) {
+//		String[] newValues = null;
+//		String[] oldValues = map.get(name);
+//		if (oldValues == null) {
+//			newValues = new String[1];
+//			newValues[0] = value;
+//		} else {
+//			newValues = new String[oldValues.length + 1];
+//			System.arraycopy(oldValues, 0, newValues, 0, oldValues.length);
+//			newValues[oldValues.length] = value;
+//		}
+//		map.put(name, newValues);
+//	}
+//	
+//	///
+//	//
+//	public static void parseParameters(Map<String, String[]> map, String data) {
+//		if ((data != null) && (data.length() > 0)) {
+//			byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
+//			parseParameters(map, bytes);
+//		}
+//	}
+//	
+//	public static void parseParameters(Map<String, String[]> map, byte[] data) {
+//		if (data != null && data.length > 0) {
+//			int ix = 0;
+//			int ox = 0;
+//			String key = null;
+//			String value = null;
+//			while (ix < data.length) {
+//				byte c = data[ix++];
+//				switch ((char) c) {
+//				case '&':
+//					value = new String(data, 0, ox);
+//					if (key != null) {
+//						putMapEntry(map, key, value);
+//						key = null;
+//					}
+//					ox = 0;
+//					break;
+//				case '=':
+//					if (key == null) {
+//						key = new String(data, 0, ox);
+//						ox = 0;
+//					} else {
+//						data[ox++] = c;
+//					}
+//					break;
+//				case '+':
+//					data[ox++] = (byte) ' ';
+//					break;
+//				case '%':
+//					data[ox++] = (byte) ((convertHexDigit(data[ix++]) << 4) + convertHexDigit(data[ix++]));
+//					break;
+//				default:
+//					data[ox++] = c;
+//				}
+//			}
+//			// The last value does not end in '&'. So save it now.
+//			if (key != null) {
+//				value = new String(data, 0, ox);
+//				putMapEntry(map, key, value);
+//			}
+//		}
+//	}
+//	
+	
 	public static Map<String, String> parseParameters(String uriString) {
 		return parseParameters(true, uriString);
 	}
     
 	public static Map<String, String> parseParameters(boolean findSchemeSeparator, String uriString) {
-
+		//
 		Map<String, String> parameters = new HashMap<String, String>();
 		//
 		// calculate it once
