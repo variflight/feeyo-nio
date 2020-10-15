@@ -23,7 +23,7 @@ import com.feeyo.net.nio.util.TimeSamplingSLF4JLogger;
 public final class NIOAcceptor extends Thread {
 	
 	private static Logger LOGGER = LoggerFactory.getLogger( NIOAcceptor.class );
-	private static Logger THROTTLED_LOGGER = new TimeSamplingSLF4JLogger(LOGGER, 100, TimeUnit.MILLISECONDS);	// 间隔100毫秒
+	private static Logger THROTTLED_LOGGER = new TimeSamplingSLF4JLogger(LOGGER, 100, TimeUnit.MILLISECONDS);	// 间隔100毫秒, 限流
 	//
 	private final int port;
 	private volatile Selector selector;
