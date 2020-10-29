@@ -539,7 +539,7 @@ public class ByteUtil {
                 }
                 out.append(hexs).append(' ');
             }
-            //LoggerUtil.debug("offset = {}, length = {}, end = {}, n = {}", offset, length, end, n);
+            //
             // padding hex string in line
             for (int i = n; i < 8; i++) {
             	out.append("   ");
