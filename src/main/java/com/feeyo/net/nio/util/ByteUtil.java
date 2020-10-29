@@ -500,67 +500,67 @@ public class ByteUtil {
     	return dumpAsHex(data, 0, data.length);
     }
     //
-    public static String dumpAsHex(byte[] data, int offset,  int length) {
-            final StringBuilder out = new StringBuilder(); //length * 4
-            final int end = offset + length;
-            int p    = offset;
-            int rows = length / 8;
-            //
-            // rows
-            for (int i = 0; (i < rows) && (p < end); i++) {
-                // - hex string in a line
-                for (int j = 0, k = p; j < 8; j++, k++) {
-                    final String hexs = Integer.toHexString(data[k] & 0xff);
-                    if (hexs.length() == 1) {
-                    	out.append('0');
-                    }
-                    out.append(hexs).append(' ');
-                }
-                out.append("    ");
-                // - ascii char in a line
-                for (int j = 0; j < 8; j++, p++) {
-                    final int b = 0xff & data[p];
-                    if (b > 32 && b < 127) {
-                    	out.append((char) b);
-                    } else {
-                    	out.append('.');
-                    }
-                    out.append(' ');
-                }
-                out.append('\n');
-            }
-            //
-            // remain bytes
-            int n = 0;
-            for (int i = p; i < end; i++, n++) {
-                final String hexs = Integer.toHexString(data[i] & 0xff);
-                if (hexs.length() == 1) {
-                	out.append('0');
-                }
-                out.append(hexs).append(' ');
-            }
-            //
-            // padding hex string in line
-            for (int i = n; i < 8; i++) {
-            	out.append("   ");
-            }
-            out.append("    ");
-            
-            for (int i = p; i < end; i++) {
-                final int b = 0xff & data[i];
-                if (b > 32 && b < 127) {
-                	out.append((char) b);
-                } else {
-                	out.append('.');
-                }
-                out.append(' ');
-            }
-            if(p < end){
-            	out.append('\n');
-            }
-            
-            return (out.toString());
-    }
+	public static String dumpAsHex(byte[] data, int offset, int length) {
+		final StringBuilder out = new StringBuilder(); // length * 4
+		final int end = offset + length;
+		int p = offset;
+		int rows = length / 8;
+		//
+		// rows
+		for (int i = 0; (i < rows) && (p < end); i++) {
+			// - hex string in a line
+			for (int j = 0, k = p; j < 8; j++, k++) {
+				final String hexs = Integer.toHexString(data[k] & 0xff);
+				if (hexs.length() == 1) {
+					out.append('0');
+				}
+				out.append(hexs).append(' ');
+			}
+			out.append("    ");
+			// - ascii char in a line
+			for (int j = 0; j < 8; j++, p++) {
+				final int b = 0xff & data[p];
+				if (b > 32 && b < 127) {
+					out.append((char) b);
+				} else {
+					out.append('.');
+				}
+				out.append(' ');
+			}
+			out.append('\n');
+		}
+		//
+		// remain bytes
+		int n = 0;
+		for (int i = p; i < end; i++, n++) {
+			final String hexs = Integer.toHexString(data[i] & 0xff);
+			if (hexs.length() == 1) {
+				out.append('0');
+			}
+			out.append(hexs).append(' ');
+		}
+		//
+		// padding hex string in line
+		for (int i = n; i < 8; i++) {
+			out.append("   ");
+		}
+		out.append("    ");
+
+		for (int i = p; i < end; i++) {
+			final int b = 0xff & data[i];
+			if (b > 32 && b < 127) {
+				out.append((char) b);
+			} else {
+				out.append('.');
+			}
+			out.append(' ');
+		}
+		if (p < end) {
+			out.append('\n');
+		}
+		//
+		return (out.toString());
+	}
     
     //
     public static String dump(ByteBuffer buffer) {
