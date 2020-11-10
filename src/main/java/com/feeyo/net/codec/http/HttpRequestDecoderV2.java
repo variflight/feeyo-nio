@@ -7,49 +7,45 @@ import com.feeyo.net.nio.NetSystem;
 import org.apache.commons.lang3.StringUtils;
 
 public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
-
+	///
     // buffer
     private CompositeByteBuffer contentBuffer = new CompositeByteBuffer(NetSystem.getInstance().getBufferPool());
     private final StringBuilder charCache = new StringBuilder();
     private byte[] data;
     private int dataOffset = 0;
-
+    //
     // state
     private State state = State.START;
     private FieldState fieldState = FieldState.FIELD;
-
+    //
     // HttpRequest
     private HttpRequest request;
     private HttpMethod httpMethod;
     private String uri;
     private String headerName;
-
+    //
     // content
     // Transfer-Encoding = chunked 表示每次Chunk的Size
     // Transfer-Encoding = null && Content-Length != null 表示content的总长度
     // -1 表示非chunk且没有设置Content-Length
     private int contentLength = -1;
+    //
     // 记录读一次chunk的size, 防止在chunk中发生断包
     private int chunkOffset = 0;
     private boolean hasCR = false;
     private boolean transferEncodingChunked = false;
 
-
     @Override
     public HttpRequest decode(byte[] data) throws UnknownProtocolException {
-
+    	//
         if (data == null || data.length == 0)
             return null;
-
         //
         this.data = data;
         this.dataOffset = 0;
-
         //
         for (; ; ) {
-
             switch (state) {
-
                 case START: {
                     if (skipControlCharacters()) {
                         break;
@@ -57,7 +53,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                         return null;
                     }
                 }
-
                 case METHOD: {
                     if (parseMethod()) {
                         break;
@@ -65,12 +60,11 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                         return null;
                     }
                 }
-
                 case SPACE1: {
                     HttpTokens.Token t = next();
                     if (t == null)
                         return null;
-
+                    //
                     switch (t.getType()) {
                         case SPACE:
                             break;
@@ -89,7 +83,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                     }
                     break;
                 }
-
                 case URI: {
                     if (parseURI()) {
                         break;
@@ -97,16 +90,14 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                         return null;
                     }
                 }
-
                 case SPACE2: {
                     HttpTokens.Token t = next();
                     if (t == null)
                         return null;
-
+                    //
                     switch (t.getType()) {
                         case SPACE:
                             break;
-
                         case ALPHA:
                         case DIGIT:
                         case TCHAR:
@@ -115,16 +106,13 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                             charCache.append(t.getChar());
                             state = State.REQUEST_VERSION;
                             break;
-
                         case LF:
                             throw new UnknownProtocolException("HTTP/0.9 not supported");
-
                         default:
                             throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
                     }
                     break;
                 }
-
                 case REQUEST_VERSION: {
                     if (parseRequestVersion()) {
                         break;
@@ -132,7 +120,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                         return null;
                     }
                 }
-
                 case HEADER: {
                     if (parseFields()) {
                         break;
@@ -140,7 +127,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                         return null;
                     }
                 }
-
                 case CONTENT: {
                     //
                     if (request == null)
@@ -164,7 +150,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                         return null;
                     }
                 }
-
                 case CHUNKED_CONTENT: {
                     HttpTokens.Token t = next();
                     if (t == null)
@@ -191,7 +176,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                     }
                     break;
                 }
-
                 case CHUNK_SIZE: {
                     HttpTokens.Token t = next();
                     if (t == null)
@@ -222,7 +206,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                     }
                     break;
                 }
-
                 case CHUNK: {
                     //
                     if (contentLength <= 0)
@@ -249,7 +232,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
 
                     break;
                 }
-
                 case EOF_CONTENT: {
                     //
                     if (request == null)
@@ -265,7 +247,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                     state = State.CONTENT_END;
                     break;
                 }
-
                 default:
                     HttpRequest httpRequest = request;
                     reset();
@@ -279,19 +260,17 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
             HttpTokens.Token t = next();
             if (t == null)
                 return false;
-
+            //
             switch (t.getType()) {
                 case LF:
                     HttpVersion httpVersion = HttpVersion.find(charCache);
-                    if (httpVersion == null) {
+                    if (httpVersion == null) 
                         throw new UnknownProtocolException("Unsupported http version " + charCache);
-                    }
-
+                    //
                     request = new HttpRequest(httpVersion.toString(), httpMethod.name(), uri);
                     charCache.setLength(0);
                     state = State.HEADER;
                     return true;
-
                 case ALPHA:
                 case DIGIT:
                 case TCHAR:
@@ -299,7 +278,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                 case COLON:
                     charCache.append(t.getChar());
                     break;
-
                 default:
                     throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
             }
@@ -312,18 +290,16 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
             HttpTokens.Token t = next();
             if (t == null)
                 return false;
-
+            //
             switch (t.getType()) {
                 case SPACE:
                     uri = charCache.toString();
                     charCache.setLength(0);
                     state = State.SPACE2;
                     return true;
-
                 case LF:
                     // HTTP/0.9
                     throw new UnknownProtocolException("HTTP/0.9 not supported");
-
                 case ALPHA:
                 case DIGIT:
                 case TCHAR:
@@ -332,7 +308,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                 case OTEXT:
                     charCache.append(t.getChar());
                     break;
-
                 default:
                     throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
             }
@@ -341,48 +316,42 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
     }
 
     private boolean parseMethod() throws UnknownProtocolException {
-
         while (state == State.METHOD) {
             HttpTokens.Token t = next();
             if (t == null)
                 return false;
-
+            //
             switch (t.getType()) {
                 case SPACE:
                     httpMethod = HttpMethod.find(charCache);
-                    if (httpMethod == null) {
+                    if (httpMethod == null) 
                         throw new UnknownProtocolException("Unsupported http method " + charCache);
-                    }
-
+                    //
                     charCache.setLength(0);
                     state = State.SPACE1;
                     return true;
-
                 case LF:
                     throw new UnknownProtocolException("No method");
-
                 case ALPHA:
                 case DIGIT:
                 case TCHAR:
                     charCache.append(t.getChar());
                     break;
-
                 default:
                     throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
             }
         }
         return false;
     }
-
+    ///
     // skip control characters
     private boolean skipControlCharacters() throws UnknownProtocolException {
         //
         while (state == State.START) {
-
             HttpTokens.Token t = next();
             if (t == null)
                 return false;
-
+            //
             switch (t.getType()) {
                 case ALPHA:
                 case DIGIT:
@@ -397,43 +366,37 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                 case SPACE:
                 case HTAB:
                     throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
-
                 default:
                     break;
             }
         }
         return false;
     }
-
+    ///
     // Process headers
     private boolean parseFields() throws UnknownProtocolException {
 
         while (state == State.HEADER) {
-
             HttpTokens.Token t = next();
             if (t == null)
                 return false;
-
+            //
             switch (fieldState) {
-
                 case FIELD:
                     switch (t.getType()) {
                         case SPACE:
                         case HTAB:
                             break;
-
                         case COLON:
                             fieldState = FieldState.VALUE;
                             headerName = charCache.toString();
                             charCache.setLength(0);
                             break;
-
                         case ALPHA:
                         case DIGIT:
                         case TCHAR:
                             charCache.append(t.getChar());
                             break;
-
                         case LF:
                             if (transferEncodingChunked) {
                                 state = State.CHUNKED_CONTENT;
@@ -443,7 +406,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                                 state = State.CONTENT;
                             }
                             return true;
-
                         default:
                             throw new UnknownProtocolException(String.format("Illegal character (%s) in state (%s)", t, state));
                     }
@@ -456,11 +418,9 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                             charCache.setLength(0);
                             fieldState = FieldState.FIELD;
                             break;
-
                         case SPACE:
                         case HTAB:
                             break;
-
                         case ALPHA:
                         case DIGIT:
                         case TCHAR:
@@ -469,7 +429,6 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                         case OTEXT:
                             charCache.append(t.getChar());
                             break;
-
                         default:
                             throw new UnknownProtocolException(String.format("Illegal character %s", t));
                     }
@@ -482,7 +441,7 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
 
         return false;
     }
-
+    ///
     // Accept-Encoding: gzip, deflate 表示客户端支持的压缩模式
     // Content-Encoding: gzip 表示服务端响应使用的压缩模式
     // Transfer-Encoding: gzip, chunked 可以支持多个值(如果存在chunked, 必须在最后)
@@ -511,13 +470,11 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
     }
 
     private HttpTokens.Token next() throws UnknownProtocolException {
-
         if (!hasRemaining()) {
             return null;
         }
         byte ch = data[dataOffset++];
         HttpTokens.Token t = HttpTokens.TOKENS[0xff & ch];
-
         switch (t.getType()) {
             case CNTL:
                 throw new UnknownProtocolException(String.format("Illegal character %s", t));
@@ -527,12 +484,11 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
             case CR:
                 if (hasCR)
                     throw new UnknownProtocolException("Bad EOL");
-
+                //
                 hasCR = true;
                 if (hasRemaining()) {
                     return next();
                 }
-
                 return null;
             case ALPHA:
             case DIGIT:
@@ -545,11 +501,9 @@ public class HttpRequestDecoderV2 implements Decoder<HttpRequest> {
                 if (hasCR)
                     throw new UnknownProtocolException("Bad EOL");
                 break;
-
             default:
                 break;
         }
-
         return t;
     }
 

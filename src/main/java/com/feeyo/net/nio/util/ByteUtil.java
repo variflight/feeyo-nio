@@ -479,7 +479,6 @@ public class ByteUtil {
 
     //
     public static long asciiBytesToLong(byte[] bytes, int start, int end) {
-        //
         final int readableBytes = end - start;
         final boolean negative = readableBytes > 0 && bytes[start] == '-';
         int extraOneByteForNegative = negative ? start + 1 : start;
@@ -496,9 +495,11 @@ public class ByteUtil {
         return number;
     }
     
+    //
     public static String dumpAsHex(byte[] data) {
     	return dumpAsHex(data, 0, data.length);
     }
+    
     //
 	public static String dumpAsHex(byte[] data, int offset, int length) {
 		final StringBuilder out = new StringBuilder(); // length * 4
@@ -567,21 +568,22 @@ public class ByteUtil {
     	return dump(buffer, 0, buffer.limit());
     }
     
+    //
     public static String dump(ByteBuffer buffer, int offset, int length) {
     	byte[] data = new byte[ length ];
 		for(int i = offset; i < length; i++)
 			data[i] = buffer.get(i);
-		
+		//
     	return dump(data);
     }
     
+    //
     public static String dump(byte[] data) {
     	return dump(data, 0, data.length);
     }
     
-
+    //
 	public static String dump(byte[] data, int offset, int length) {
-
 		StringBuilder sb = new StringBuilder();
 		sb.append(" byte dump log ");
 		sb.append(System.lineSeparator());
