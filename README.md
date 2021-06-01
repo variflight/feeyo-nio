@@ -1,6 +1,6 @@
 # feeyo-nio
 
-A simple NIO framework
+An asynchronous network application framework
 
 
 ## Usage
