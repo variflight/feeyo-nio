@@ -13,40 +13,6 @@
     	<javadoc.skip>false</javadoc.skip>
    	</properties>
   
-   	<licenses>
-    	<license>
-      		<name>BSD 3-Clause</name>
-      		<url>https://spdx.org/licenses/BSD-3-Clause.html</url>
-   	 	</license>
-   	</licenses>
-  
-   	<scm>
-		<connection>scm:git:git://github.com/variflight/feeyo-nio.git</connection>
-  		<developerConnection>scm:git:ssh://github.com/variflight/feeyo-nio.git</developerConnection>
-  		<url>https://github.com/variflight/feeyo-nio/tree/master</url>
-   	</scm>
-  
-   	<developers>
-     	<developer>
-        	<name>zhuaming</name>
-        	<email>zhuaming@gmail.com</email>
-     	</developer> 
-   	</developers>
-  
-   	<!-- OSS -->	
-   	<distributionManagement> 
- 	 <snapshotRepository>
-        <id>ossrh</id>
-        <name>Sonatype Nexus Snapshots</name>
-        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-     </snapshotRepository>
-     <repository>
-        <id>ossrh</id>
-        <name>Nexus Release Repository</name>
-        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-     </repository>
-   	</distributionManagement>
-
 
     <dependencies>
     
@@ -121,39 +87,6 @@
     <build>
         <plugins>
           
-           <!-- Doc -->	
-       	   <plugin>
-		      <groupId>org.apache.maven.plugins</groupId>
-		      <artifactId>maven-javadoc-plugin</artifactId>
-		      <version>3.3.0</version>
-		      <executions>
-		        <execution>
-		          <id>attach-javadocs</id>
-		          <goals>
-		            <goal>jar</goal>
-		          </goals>
-		          <configuration>  
-	                 <additionalJOption>-Xdoclint:none</additionalJOption>
-	              </configuration>  
-		        </execution>
-		      </executions>
-		   </plugin>
-       
-       	   <!-- Source --> 
-       	   <plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-source-plugin</artifactId>
-			    <version>3.2.1</version>
-			    <executions>
-			     <execution>
-			      <id>attach-sources</id>
-			      <goals>
-			       <goal>jar-no-fork</goal>
-			      </goals>
-			     </execution>
-			    </executions>
-		   </plugin>
-       	   
        	   <!-- Compiler -->
            <plugin>
                <groupId>org.apache.maven.plugins</groupId>
@@ -165,28 +98,6 @@
                    <encoding>UTF-8</encoding>
                </configuration>
            </plugin>
-            
-           <!-- GPG Signature -->
-           <plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-gpg-plugin</artifactId>
-			    <version>1.6</version>
-			    <executions>
-			        <execution>
-			            <id>sign-artifacts</id>
-			            <phase>verify</phase>
-			            <goals>
-			                <goal>sign</goal>
-			            </goals>
-			            <configuration>
-			                <gpgArguments>
-			                    <arg>--pinentry-mode</arg>
-			                    <arg>loopback</arg>
-			                </gpgArguments>
-			            </configuration>
-			        </execution>
-			    </executions>
-			</plugin>
             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -208,21 +119,6 @@
                 </executions>
             </plugin>
             
-            <!-- Nexus Staging Plugin -->
-		    <plugin>
-		        <groupId>org.sonatype.plugins</groupId>
-		        <artifactId>nexus-staging-maven-plugin</artifactId>
-		        
-		        <version>1.6.8</version>
-		        <extensions>true</extensions>
-		        <configuration>
-		          <serverId>oss</serverId> <!-- settings.xml-->
-		          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-		          <repository>Releases</repository>
-		          <autoReleaseAfterClose>false</autoReleaseAfterClose>
-		          <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
-		        </configuration>
-		    </plugin>
         </plugins>
     </build>
 </project>
