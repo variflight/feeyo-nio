@@ -40,14 +40,6 @@ public class WebSocketEncoder {
 				buffer.put(b0);
 				buffer.put((byte) 127);
 				buffer.putLong(payloadLength);
-//				buffer.put((byte)((payloadLength >> 56) & 0xff));
-//				buffer.put((byte)((payloadLength >> 48) & 0xff));
-//				buffer.put((byte)((payloadLength >> 40) & 0xff));
-//				buffer.put((byte)((payloadLength >> 32) & 0xff));
-//				buffer.put((byte)((payloadLength >> 24) & 0xff));
-//				buffer.put((byte)((payloadLength >> 16) & 0xff));
-//				buffer.put((byte)((payloadLength >> 8) & 0xff));
-//				buffer.put((byte)(payloadLength & 0xff));
 			}
 			//
 			for (int i = 0; i < frame.getPayloadLength(); i++) {
