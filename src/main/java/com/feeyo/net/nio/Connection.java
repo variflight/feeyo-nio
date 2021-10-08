@@ -22,7 +22,7 @@ import com.feeyo.net.nio.util.TimeUtil;
 public class Connection extends ClosableConnection {
 	
 	private static Logger LOGGER = LoggerFactory.getLogger( Connection.class );
-	
+	//
 	protected volatile ByteBuffer readBuffer;  //读缓冲区
 	protected volatile ByteBuffer writeBuffer; //写缓冲区 及 queue
 	protected ConcurrentLinkedQueue<ByteBuffer> writeQueue = new ConcurrentLinkedQueue<ByteBuffer>();
@@ -35,7 +35,6 @@ public class Connection extends ClosableConnection {
 	
 	protected static final int maxCapacity = 1024 * 1024 * 16;			// 最大 16 兆
 	
-
 	public Connection(SocketChannel socketChannel) {
 		super(socketChannel);
 	}
@@ -50,7 +49,6 @@ public class Connection extends ClosableConnection {
 		return largeCounter;
 	}
 
-	
 	// 内部
 	public ByteBuffer allocate(int chunkSize) {
 		ByteBuffer buffer = NetSystem.getInstance().getBufferPool().allocate( chunkSize );
@@ -63,8 +61,8 @@ public class Connection extends ClosableConnection {
 	
 	@Override
 	public void doNextWriteCheck() {
-		
-		//检查是否正在写,看CAS更新writing值是否成功
+		//
+		// 检查是否正在写,看CAS更新writing值是否成功
 		if ( !writing.compareAndSet(false, true) ) {
 			return;
 		}
@@ -95,7 +93,6 @@ public class Connection extends ClosableConnection {
 			writing.set(false);	
 		}
 	}
-
 	
 	public ByteBuffer writeToBuffer(byte[] src, ByteBuffer buffer) {
 		int offset = 0;
@@ -155,7 +152,6 @@ public class Connection extends ClosableConnection {
 	}
 	
 	private boolean write0() throws IOException {
-		
 		int written = 0;
 		ByteBuffer buffer = writeBuffer;
 		if (buffer != null) {	
@@ -180,8 +176,8 @@ public class Connection extends ClosableConnection {
 				recycle( buffer );
 			}
 		}
-		
-		//读取缓存队列并写channel
+		//
+		// 读取缓存队列并写channel
 		while ((buffer = writeQueue.poll()) != null) {
 			if (buffer.limit() == 0) {
 				recycle(buffer);
@@ -235,8 +231,8 @@ public class Connection extends ClosableConnection {
 		if (isClosed.get()) {
 			return;
 		}
-		
-		//检查是否正在写,看CAS更新reading值是否成功
+		//
+		// 检查是否正在写,看CAS更新reading值是否成功
 		if ( !reading.compareAndSet(false, true) ) {
 			LOGGER.info(" connection reading cas ... ");
 			return;
@@ -308,7 +304,7 @@ public class Connection extends ClosableConnection {
 					//
 					//no break;  Be careful, read the lock 		
 				} 
-				
+				//
 				// 负责解析报文并处理
 				int dataLength = readBuffer.position();
 				readBuffer.position( offset );
@@ -316,9 +312,7 @@ public class Connection extends ClosableConnection {
 				readBuffer.get(data, 0, dataLength);
 
 				this.handler.handleReadEvent(this, data);
-				
-				
-				
+				//
 				// 存在扩大后的 byte buffer
 				// 并且最近30秒 没有接收到大的消息 
 				// 然后改为直接缓冲 direct byte buffer 提高性能
@@ -397,7 +391,6 @@ public class Connection extends ClosableConnection {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void close(String reason) {
-		//
 		if ( isClosed.compareAndSet(false, true) ) {
 			this.closeSocket();
 			this.cleanup();		
@@ -417,7 +410,6 @@ public class Connection extends ClosableConnection {
 	
 	// 清理资源
 	protected synchronized void cleanup() {
-		
 		if (readBuffer != null) {
 			recycle(readBuffer);
 			this.readBuffer = null;
@@ -436,7 +428,6 @@ public class Connection extends ClosableConnection {
 	
 	private void closeSocket() {
 		if ( socketChannel != null ) {		
-			
 			if (socketChannel instanceof SocketChannel) {
 				Socket socket = ((SocketChannel) socketChannel).socket();
 				if (socket != null) {
@@ -463,7 +454,6 @@ public class Connection extends ClosableConnection {
 
 	@Override
 	public String toString() {
-		
 		StringBuffer sbuffer = new StringBuffer(100);
 		sbuffer.append( "Conn[" );
 		sbuffer.append("reactor=").append( reactor );
@@ -477,5 +467,4 @@ public class Connection extends ClosableConnection {
 		sbuffer.append("]");
 		return  sbuffer.toString();
 	}
-
 }

@@ -17,7 +17,6 @@ final class Hpack {
 	public static final int PREFIX_7_BITS = 0x7f;
 
 	public static final Header[] STATIC_HEADER_TABLE = new Header[] { 
-			
 			new Header(Header.TARGET_AUTHORITY, ""),
 			new Header(Header.TARGET_METHOD, "GET"), 
 			new Header(Header.TARGET_METHOD, "POST"),

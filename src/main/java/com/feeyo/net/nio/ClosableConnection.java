@@ -15,13 +15,11 @@ import com.feeyo.net.nio.util.TimeUtil;
 public abstract class ClosableConnection {
 	
 	private static Logger LOGGER = LoggerFactory.getLogger( ClosableConnection.class );
-	
 	//
 	// 连接的方向，in表示是客户端连接过来的，out表示自己作为客户端去连接对端Sever
 	public enum Direction {
 		in, out
 	}
-	
 	//
 	public static final int STATE_CONNECTING = 0;
 	public static final int STATE_CONNECTED = 1;
@@ -30,10 +28,8 @@ public abstract class ClosableConnection {
 	//
 	protected static final int OP_NOT_READ = ~SelectionKey.OP_READ;
 	protected static final int OP_NOT_WRITE = ~SelectionKey.OP_WRITE;
-	
 	//
 	protected Direction direction = Direction.out;
-
 	protected String host;
 	protected int port;
 	protected int localPort;
@@ -45,16 +41,13 @@ public abstract class ClosableConnection {
 	// socket
 	protected SocketChannel socketChannel;
 	protected SelectionKey processKey;
-
 	//
 	protected AtomicBoolean isClosed;
 	protected boolean isSocketClosed;
-	
 	//
 	protected long startupTime;
 	protected long lastReadTime;
 	protected long lastWriteTime;
-	
 	//	
 	protected long netInBytes;											
 	protected long netOutBytes;
@@ -64,7 +57,6 @@ public abstract class ClosableConnection {
 	
 	@SuppressWarnings("rawtypes")
 	protected NIOHandler handler;
-	
 	//
 	public ClosableConnection(SocketChannel socketChannel) {
 		this.socketChannel = socketChannel;
@@ -82,7 +74,6 @@ public abstract class ClosableConnection {
 	public void setIdleTimeout(long idleTimeout) {
 		this.idleTimeout = idleTimeout;
 	}
-	
 
 	public String getHost() {
 		return host;
@@ -140,7 +131,6 @@ public abstract class ClosableConnection {
 		return netOutBytes;
 	}
 	
-
 	public void setHandler(NIOHandler<? extends ClosableConnection> handler) {
 		this.handler = handler;
 	}
