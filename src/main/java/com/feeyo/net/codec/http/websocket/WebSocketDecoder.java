@@ -37,10 +37,6 @@ public class WebSocketDecoder implements Decoder<Frame> {
 	@Override
 	public Frame decode(byte[] buf) throws UnknownProtocolException {
 		ByteBuffer buffer = ByteBuffer.wrap(buf);
-		return decode(buffer);
-	}
-	//
-	public Frame decode(ByteBuffer buffer) throws UnknownProtocolException {
 		while (buffer.hasRemaining()) {
 			switch (state) {
 				case START: {
