@@ -23,10 +23,10 @@ public class RedisRequestDecoderV2 implements Decoder<List<RedisRequest>> {
     @Override
     public List<RedisRequest> decode(byte[] buffer) throws UnknownProtocolException {
         append(buffer);
-
+        //
         // pipeline
         List<RedisRequest> pipeline = new ArrayList<>();
-
+        //
         try {
             // 读取到的参数索引
             int argIndex = -1;

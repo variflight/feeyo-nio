@@ -9,18 +9,15 @@ import java.util.List;
  * @see "https://github.com/netty/netty/blob/4.1/buffer/src/main/java/io/netty/buffer/CompositeByteBuf.java"
  */
 public class CompositeByteArray {
-	
 	//
     private List<ByteArrayChunk> chunks = new ArrayList<>();
     private ByteArrayChunk lastChunk = null;
-    
     private int byteCount = 0;
-
     //
     public void add(byte[] data) {
-    	
+    	//
         this.byteCount += data.length;
-        
+        //
         ByteArrayChunk c = null;
         if ( lastChunk != null ) {
             c = new ByteArrayChunk(data, data.length, lastChunk.endIndex);
@@ -29,8 +26,8 @@ public class CompositeByteArray {
         } else {
         	c = new ByteArrayChunk(data, data.length, 0);
         }
-        
-        chunks.add( c );
+        //
+        chunks.add(c);
         lastChunk = c;
     }
 
@@ -60,11 +57,10 @@ public class CompositeByteArray {
 
     // 从 index 位置开始查找 指定 byte 
     public int firstIndex(int index, byte value) {
-    	
     	if ( index + 1 > byteCount ) {
     		throw new IndexOutOfBoundsException( String.format("index: %d, (expected: range(0, %d))", index, byteCount) );
     	}
-
+    	//
         ByteArrayChunk c = findChunk(index);
         return c.find(index, value);
     }
@@ -77,7 +73,7 @@ public class CompositeByteArray {
         ByteArrayChunk c = findChunk(beginIndex);
         return getData(c, beginIndex, length);
     }
-    
+    //
     public byte[] getData(ByteArrayChunk chunk, int beginIndex, int length) {
         assert chunk != null;        
         //
@@ -129,7 +125,6 @@ public class CompositeByteArray {
         byteCount = 0;
     }
     
-    
     /*
       包装了 byte[], 增加了 length 和 beginIndex 方便查找
      */
@@ -159,7 +154,7 @@ public class CompositeByteArray {
         public void setNext(ByteArrayChunk next) {
             this.next = next;
         }
-
+        //
         // 边界检查
         public boolean isInBoundary(int index) {
             return  index >= beginIndex && index < endIndex;
@@ -174,10 +169,8 @@ public class CompositeByteArray {
         }
 
         public int find(int index, byte value) {
-            
         	// check index 有效性
             ByteArrayChunk c = this;
-
             // 利用链表和数组快速查找
             while (c != null) {
                 while (index < c.endIndex ) {

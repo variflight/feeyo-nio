@@ -8,7 +8,7 @@ import com.feeyo.net.nio.util.BufferUtil;
 
 public class WebSocketDecoder implements Decoder<Frame> {
 	//
-	private enum State {
+	protected enum State {
 		START, 
 		PAYLOAD_LEN, 
 		PAYLOAD_LEN_BYTES, 
@@ -18,24 +18,29 @@ public class WebSocketDecoder implements Decoder<Frame> {
 	}
 	//
 	// State specific
-	private State state = State.START;
-	private int cursor = 0;
+	protected State state = State.START;
+	protected int cursor = 0;
 	//
 	// Frame
-	private Frame frame;
+	protected Frame frame;
 	//
 	// payload specific
-	private ByteBuffer payload;
-	private int payloadLength;
+	protected ByteBuffer payload;
+	protected int payloadLength;
 	//
 	// 掩码，用于掩码算法
-	private byte[] maskBytes;
-	private int maskInt;
-	private int maskOffset;
-
+	protected byte[] maskBytes;
+	protected int maskInt;
+	protected int maskOffset;
+	
+	
 	@Override
 	public Frame decode(byte[] buf) throws UnknownProtocolException {
 		ByteBuffer buffer = ByteBuffer.wrap(buf);
+		return decode(buffer);
+	}
+	//
+	public Frame decode(ByteBuffer buffer) throws UnknownProtocolException {
 		while (buffer.hasRemaining()) {
 			switch (state) {
 				case START: {
@@ -49,7 +54,6 @@ public class WebSocketDecoder implements Decoder<Frame> {
 					//
 					frame = new Frame(opcode);
 					frame.setFin(fin);
-					//
 					if ((b & 0x70) != 0) {
 						if ((b & 0x40) != 0) {
 							frame.setRsv1(true);
@@ -83,7 +87,7 @@ public class WebSocketDecoder implements Decoder<Frame> {
 						cursor = 2;
 						break;
 					}
-					
+					//
 					if (payloadLength > Integer.MAX_VALUE) 
 						throw new UnknownProtocolException("[int-sane!] cannot handle payload lengths larger than " + Integer.MAX_VALUE);
 					//
