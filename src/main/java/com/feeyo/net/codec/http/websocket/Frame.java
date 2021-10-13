@@ -156,6 +156,10 @@ public class Frame {
 	public boolean isRsv3() {
 		return (byte) (finRsvOp & 0x10) != 0;
 	}
+	
+	public byte finRsvOp() {
+		return finRsvOp;
+	}
 
 	public void reset() {
 		finRsvOp = (byte) 0x80; // FIN (!RSV, opcode 0)
@@ -216,7 +220,6 @@ public class Frame {
 		this.finRsvOp = (byte) ((finRsvOp & 0xEF) | (rsv3 ? 0x10 : 0x00));	// set bit 4
 		return this;
 	}
-	
 	
 	@Override
 	public int hashCode() {

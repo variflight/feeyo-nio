@@ -25,6 +25,9 @@ public class WebSocketTest {
 		NetSystem.getInstance().setNetConfig(systemConfig);
 		//
 		Frame frame = new Frame(OpCode.BINARY);
+		frame.setFin(false);
+		frame.setRsv1(true);
+		frame.setRsv2(true);
 		frame.setPayload("helloworld,, xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!!");
 		ByteBuffer buf = webSocketEncoder.encode(frame);
 		//
@@ -34,7 +37,7 @@ public class WebSocketTest {
 		}
 		
 		Frame frame2 = webSocketDecoder.decode(bb);
-		System.out.println( frame2.getOpCode() + ", " +  frame2.getPayloadAsUTF8() + ", " + frame2.getPayloadLength() );
+		System.out.println(frame2.getOpCode() + ", " + frame2.isFin() + "," + frame2.isRsv1() + "," + frame2.isRsv2() + ", " +  frame2.getPayloadAsUTF8() + ", " + frame2.getPayloadLength() );
 	}
 
 }
