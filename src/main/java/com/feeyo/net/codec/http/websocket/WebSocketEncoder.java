@@ -21,7 +21,7 @@ public class WebSocketEncoder {
 		ByteBuffer buffer = null;
 		try {
 			int payloadLength = frame.getPayloadLength();
-			byte b0 =  frame.finRsvOp(); // (byte) (0x8f & (frame.getOpCode() | 0xf0));
+			byte b0 = frame.getFinRsvOp(); // (byte) (0x8f & (frame.getOpCode() | 0xf0));
 			if (payloadLength <= 125) {
 				buffer = bufferPool.allocate(2 + payloadLength);
 				buffer.put(b0);

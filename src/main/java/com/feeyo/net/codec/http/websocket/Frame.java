@@ -157,7 +157,7 @@ public class Frame {
 		return (byte) (finRsvOp & 0x10) != 0;
 	}
 	
-	public byte finRsvOp() {
+	public byte getFinRsvOp() {
 		return finRsvOp;
 	}
 
