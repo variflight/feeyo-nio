@@ -25,7 +25,7 @@ public class WebSocketTest {
 		NetSystem.getInstance().setNetConfig(systemConfig);
 		//
 		Frame frame = new Frame(OpCode.BINARY);
-		frame.setFin(false);
+		frame.setFin(true);
 		frame.setRsv1(true);
 		frame.setRsv2(true);
 		frame.setPayload("helloworld,, xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!!");
