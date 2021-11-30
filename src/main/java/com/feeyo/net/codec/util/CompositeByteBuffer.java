@@ -8,10 +8,10 @@ import java.util.List;
 
 public class CompositeByteBuffer {
     //
+    private final BufferPool bufferPool;
+    //
     private final List<ByteBufferChunk> chunks = new ArrayList<>();
     private ByteBufferChunk lastChunk = null;
-    private final BufferPool bufferPool;
-
     private int byteCount = 0;
 
     public CompositeByteBuffer(BufferPool bufferPool) {
@@ -19,42 +19,38 @@ public class CompositeByteBuffer {
     }
 
     public void add(byte[] data, int offset, int length) {
-
         this.byteCount += length;
-        // 只读ByteBuffer, 不调整position/limit
+        //
+        // TODO: 只读ByteBuffer, 不调整position/limit
         ByteBuffer buffer = bufferPool.allocate(length);
         buffer.put(data, offset, length);
-
+        //
         ByteBufferChunk c;
         if (lastChunk != null) {
             c = new ByteBufferChunk(buffer, length, lastChunk.endIndex);
             lastChunk.setNext(c);
-
         } else {
             c = new ByteBufferChunk(buffer, length, 0);
         }
-
         chunks.add(c);
         lastChunk = c;
     }
 
     public void add(CompositeByteBuffer data, int offset, int length) {
-
         this.byteCount += length;
-        // 只读ByteBuffer, 不调整position/limit
+        //
+        // TODO: 只读ByteBuffer, 不调整position/limit
         ByteBuffer buffer = bufferPool.allocate(length);
         data.copy(buffer, offset, length);
         buffer.flip();
-
+        //
         ByteBufferChunk c;
         if (lastChunk != null) {
             c = new ByteBufferChunk(buffer, length, lastChunk.endIndex);
             lastChunk.setNext(c);
-
         } else {
             c = new ByteBufferChunk(buffer, length, 0);
         }
-
         chunks.add(c);
         lastChunk = c;
     }
@@ -79,31 +75,32 @@ public class CompositeByteBuffer {
                 return c;
             }
         }
-
         throw new IndexOutOfBoundsException("Not enough data.");
     }
-
-
+    //
     public byte get(int index) {
         ByteBufferChunk c = findChunk(index);
         return c.get(index);
     }
-
-    // 从 index 位置开始查找 指定 byte
+    //
+    public void set(int index, byte b) {
+    	 ByteBufferChunk c = findChunk(index);
+         c.set(index, b);
+    }
+    /*
+     * 从 index 位置开始查找 指定 byte
+     */
     public int firstIndex(int index, byte value) {
-
         if (index + 1 > byteCount) {
             throw new IndexOutOfBoundsException(String.format("index: %d, (expected: range(0, %d))", index, byteCount));
         }
-
         ByteBufferChunk c = findChunk(index);
         return c.find(index, value);
     }
-
     /*
-	 	取出指定区间的byte[], 可能跨多个Chunk
-	 	beginIndex 截取的开始位置, length 需要截取的长度
-	*/
+	 * 取出指定区间的byte[], 可能跨多个Chunk
+	 * beginIndex 截取的开始位置, length 需要截取的长度
+	 */
     public byte[] getData(int beginIndex, int length) {
         ByteBufferChunk c = findChunk(beginIndex);
         return getData(c, beginIndex, length);
@@ -140,14 +137,13 @@ public class CompositeByteBuffer {
         assert chunk != null;
         //
         byte[] dst = new byte[length];
-        //
         ByteBufferChunk c = chunk;
         int remaining = length;
         int dstPos = 0;
-
+        //
         int srcPos = beginIndex - c.beginIndex;
         int srcLength;
-
+        //
         while (c != null && remaining > 0) {
             // 是否第一次
             if (remaining < length) {
@@ -157,7 +153,7 @@ public class CompositeByteBuffer {
             } else {
                 srcLength = Math.min(remaining, c.length - srcPos);
             }
-
+            //
             for (int i = 0; i < srcLength; i++) {
                 dst[dstPos + i] = c.data.get(srcPos + i);
             }
@@ -193,15 +189,13 @@ public class CompositeByteBuffer {
      * 包装了 ByteBuffer, 增加了 length 和 beginIndex 方便查找
      */
     public final class ByteBufferChunk {
-
         private ByteBuffer data;
-
         private int beginIndex;
         private int length;
         //
         private int endIndex;
-
-        // 优化遍历, 维护单向链表
+        //
+        // TODO:优化遍历, 维护单向链表
         private ByteBufferChunk next;
 
         public ByteBufferChunk(ByteBuffer data, int length, int beginIndex) {
@@ -223,20 +217,28 @@ public class CompositeByteBuffer {
         public boolean isInBoundary(int index) {
             return index >= beginIndex && index < endIndex;
         }
-
+        //
         public byte get(int index) {
             if (index < endIndex || next == null) {
                 return data.get(index - beginIndex);
             }
             return next.get(index);
         }
+        //
+        public void set(int index, byte b) {
+        	 if (index < endIndex || next == null) {
+                 data.put(index - beginIndex, b);
+                 return;
+             }
+        	 next.set(index, b);
+        }
 
+        /*
+         * 从指定位置开始往后找value, 找到返回其偏移
+         */
         public int find(int index, byte value) {
-
-            // check index 有效性
+        	 // TODO: 利用链表和数组快速查找
             ByteBufferChunk c = this;
-
-            // 利用链表和数组快速查找
             while (c != null) {
                 while (index < c.endIndex) {
                     if (value == c.get(index)) {

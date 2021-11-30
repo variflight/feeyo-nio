@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
  * HttpResponse parse
  */
 public class HttpResponseDecoderV2 implements Decoder<HttpResponse> {
-
+	
 	// buffer
 	private CompositeByteBuffer contentBuffer = new CompositeByteBuffer(NetSystem.getInstance().getBufferPool());
 	private final StringBuilder charCache = new StringBuilder();

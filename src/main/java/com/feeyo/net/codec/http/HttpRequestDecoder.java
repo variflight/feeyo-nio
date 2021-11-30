@@ -32,7 +32,6 @@ public class HttpRequestDecoder implements Decoder<HttpRequest> {
 	
 	//
 	private CompositeByteArray dataBuffer = new CompositeByteArray();
-	//
 	private CompositeByteArray transferChunkedBuffer = null;
 
 	private State state;
