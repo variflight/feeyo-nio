@@ -11,7 +11,7 @@ public class CompositeByteBuffer {
     private final BufferPool bufferPool;
     //
     private final List<ByteBufferChunk> chunks = new ArrayList<>();
-    private ByteBufferChunk lastChunk = null;
+    private ByteBufferChunk tail = null; // 尾
     private int byteCount = 0;
 
     public CompositeByteBuffer(BufferPool bufferPool) {
@@ -26,14 +26,14 @@ public class CompositeByteBuffer {
         buffer.put(data, offset, length);
         //
         ByteBufferChunk c;
-        if (lastChunk != null) {
-            c = new ByteBufferChunk(buffer, length, lastChunk.endIndex);
-            lastChunk.setNext(c);
+        if (tail != null) {
+            c = new ByteBufferChunk(buffer, length, tail.endIndex);
+            tail.setNext(c);
         } else {
             c = new ByteBufferChunk(buffer, length, 0);
         }
         chunks.add(c);
-        lastChunk = c;
+        tail = c;
     }
 
     public void add(CompositeByteBuffer data, int offset, int length) {
@@ -45,14 +45,14 @@ public class CompositeByteBuffer {
         buffer.flip();
         //
         ByteBufferChunk c;
-        if (lastChunk != null) {
-            c = new ByteBufferChunk(buffer, length, lastChunk.endIndex);
-            lastChunk.setNext(c);
+        if (tail != null) {
+            c = new ByteBufferChunk(buffer, length, tail.endIndex);
+            tail.setNext(c);
         } else {
             c = new ByteBufferChunk(buffer, length, 0);
         }
         chunks.add(c);
-        lastChunk = c;
+        tail = c;
     }
 
     private void copy(ByteBuffer dstBuffer, int offset, int length) {
@@ -60,8 +60,14 @@ public class CompositeByteBuffer {
             dstBuffer.put(get(offset + i));
         }
     }
-
+    //
+    private ByteBufferChunk lastAccessed = null;
+    //
     public ByteBufferChunk findChunk(int index) {
+    	//
+    	if(lastAccessed != null && lastAccessed.isInBoundary(index)) {
+    		return lastAccessed;
+    	}
         // 二分查找
         for (int low = 0, high = chunks.size(); low <= high; ) {
             int mid = low + high >>> 1;
@@ -72,6 +78,7 @@ public class CompositeByteBuffer {
                 high = mid - 1;
             } else {
                 assert c.length != 0;
+                lastAccessed = c;
                 return c;
             }
         }
@@ -181,7 +188,8 @@ public class CompositeByteBuffer {
             chunks.set(i, null);
         }
         chunks.clear();
-        lastChunk = null;
+        tail = null;
+        lastAccessed = null;
         byteCount = 0;
     }
 
@@ -192,12 +200,11 @@ public class CompositeByteBuffer {
         private ByteBuffer data;
         private int beginIndex;
         private int length;
-        //
         private int endIndex;
         //
         // TODO:优化遍历, 维护单向链表
-        private ByteBufferChunk next;
-
+        private ByteBufferChunk next; 
+        //
         public ByteBufferChunk(ByteBuffer data, int length, int beginIndex) {
             this.data = data;
             this.length = length;
