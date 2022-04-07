@@ -1,7 +1,5 @@
 package com.feeyo.metrics;
 
-import com.feeyo.metrics.Metric;
-
 /**
  * <pre>
  * A gauge metric is an instantaneous reading of a particular value. To instrument a queue's depth,
