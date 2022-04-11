@@ -14,23 +14,21 @@ public class CompositeByteArray {
     private ByteArrayChunk lastChunk = null;
     private int byteCount = 0;
     //
-    public void add(byte[] data) {
-    	//
-        this.byteCount += data.length;
-        //
+    public void add(byte[] dataBytes) {
+        this.byteCount += dataBytes.length; // 字节数
         ByteArrayChunk c = null;
         if ( lastChunk != null ) {
-            c = new ByteArrayChunk(data, data.length, lastChunk.endIndex);
+            c = new ByteArrayChunk(dataBytes, dataBytes.length, lastChunk.endIndex);
             lastChunk.setNext( c );
             
         } else {
-        	c = new ByteArrayChunk(data, data.length, 0);
+        	c = new ByteArrayChunk(dataBytes, dataBytes.length, 0);
         }
         //
         chunks.add(c);
         lastChunk = c;
     }
-
+    //
     public ByteArrayChunk findChunk(int index) {
         // 二分查找
         for (int low = 0, high = chunks.size(); low <= high; ) {
@@ -45,17 +43,16 @@ public class CompositeByteArray {
                 return c;
             }
         }
-
         throw new IndexOutOfBoundsException("Not enough data.");
     }
-
-
+    //
     public byte get(int index) {
         ByteArrayChunk c = findChunk(index);
         return c.get(index);
     }
-
-    // 从 index 位置开始查找 指定 byte 
+    /*
+     * 从 index 位置开始查找 指定 byte 
+     */
     public int firstIndex(int index, byte value) {
     	if ( index + 1 > byteCount ) {
     		throw new IndexOutOfBoundsException( String.format("index: %d, (expected: range(0, %d))", index, byteCount) );
@@ -64,10 +61,9 @@ public class CompositeByteArray {
         ByteArrayChunk c = findChunk(index);
         return c.find(index, value);
     }
-
     /* 
-	 	取出指定区间的byte[], 可能跨多个Chunk
-	 	beginIndex 截取的开始位置, length 需要截取的长度
+	 * 	取出指定区间的byte[], 可能跨多个Chunk
+	 * 	beginIndex 截取的开始位置, length 需要截取的长度
 	*/
     public byte[] getData(int beginIndex, int length) {
         ByteArrayChunk c = findChunk(beginIndex);
@@ -76,16 +72,15 @@ public class CompositeByteArray {
     //
     public byte[] getData(ByteArrayChunk chunk, int beginIndex, int length) {
         assert chunk != null;        
-        //
         byte[] dest = new byte[length];
         //
         ByteArrayChunk c = chunk;
         int remaining = length;
         int destPos = 0;
-        
+        //
         int srcPos = beginIndex - c.beginIndex;
         int srcLength;
-
+        //
         while (c != null && remaining > 0) {
             // 是否第一次
             if (remaining < length) {
@@ -95,8 +90,8 @@ public class CompositeByteArray {
             } else {
                 srcLength = Math.min(remaining, c.length - srcPos);  
             }
-
-            System.arraycopy(c.data, srcPos, dest, destPos, srcLength);
+            //
+            System.arraycopy(c.bytes, srcPos, dest, destPos, srcLength);
             remaining = remaining - srcLength;
             destPos = destPos + srcLength;
             c = c.next;
@@ -104,7 +99,7 @@ public class CompositeByteArray {
         return dest;
     }
 
-    /**
+    /*
      * 返回剩余可读字节数
      */
     public int remaining(int readIndex) {
@@ -126,22 +121,19 @@ public class CompositeByteArray {
     }
     
     /*
-      包装了 byte[], 增加了 length 和 beginIndex 方便查找
+     * 包装了 byte[], 增加了 length 和 beginIndex 方便查找
      */
     public final class ByteArrayChunk {
-    	
-        private byte[] data;
-        
-        private int beginIndex;
+        private byte[] bytes;
         private int length;
-        //
+        private int beginIndex;
         private int endIndex;
-      
-        // 优化遍历, 维护单向链表
+        //
+        // TODO：优化遍历, 维护单向链表
         private ByteArrayChunk next;
 
-        public ByteArrayChunk(byte[] data, int length, int beginIndex) {
-            this.data = data;
+        public ByteArrayChunk(byte[] bytes, int length, int beginIndex) {
+            this.bytes = bytes;
             this.length = length;
             this.beginIndex = beginIndex;
             this.endIndex = beginIndex + length;
@@ -163,11 +155,11 @@ public class CompositeByteArray {
         public byte get(int index) {
         	// TODO: next为空则保持抛出ArrayIndexOutOfBoundsException
             if ( index < endIndex || next == null) {
-                return data[index - beginIndex];
+                return bytes[index - beginIndex];
             }
             return next.get(index);
         }
-
+        //
         public int find(int index, byte value) {
         	// check index 有效性
             ByteArrayChunk c = this;
@@ -183,9 +175,9 @@ public class CompositeByteArray {
             }
             return -1;
         }
-        
+        //
         public void clear() {
-        	this.data = null;
+        	this.bytes = null;
         	this.next = null;
         }
     }

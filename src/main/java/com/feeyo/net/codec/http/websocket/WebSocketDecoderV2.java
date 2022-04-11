@@ -2,6 +2,7 @@ package com.feeyo.net.codec.http.websocket;
 
 import com.feeyo.net.codec.Decoder;
 import com.feeyo.net.codec.UnknownProtocolException;
+import com.feeyo.net.codec.util.CompositeByteArray;
 import com.feeyo.net.nio.util.BufferUtil;
 
 import java.nio.ByteBuffer;
@@ -18,15 +19,14 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
         MASK_BYTES,
         PAYLOAD
     }
-
-    public List<byte[]> frameData = new ArrayList<>();
+    //
+    private CompositeByteArray compositeArray = null;
+    private int readOffset; // 用于标记读取位置
+    private State readState = State.START; // 读取状态
     //
     // State specific
-    private State state = State.START;
     private int cursor = 0;
-    //
-    // Frame
-    private Frame frame;
+    private Frame frame;     // Frame
     //
     // payload specific
     private ByteBuffer payload;
@@ -36,18 +36,28 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
     private byte[] maskBytes;
     private int maskInt;
     private int maskOffset;
+    //
+    private void append(byte[] newBytes) {
+        if (newBytes == null) {
+            return;
+        }
+        if (compositeArray == null) {
+            compositeArray = new CompositeByteArray();
+        }
+        compositeArray.add(newBytes);
+        readOffset = 0;
+    }
 
     @Override
     public List<Frame> decode(byte[] buf) throws UnknownProtocolException {
-        if(state == State.START){
-            frameData.clear();
-        }
-        frameData.add(buf);
-
+    	//
+    	append(buf);
+    	//
         List<Frame> frames = new ArrayList<>();
         ByteBuffer buffer = ByteBuffer.wrap(buf);
         while (buffer.hasRemaining()) {
-            switch (state) {
+        	//
+            switch (readState) {
                 case START: {
                     // peek at byte
                     byte b = buffer.get();
@@ -72,7 +82,7 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
                         }
                     }
                     //
-                    state = State.PAYLOAD_LEN;
+                    readState = State.PAYLOAD_LEN;
                     break;
                 }
                 //
@@ -83,22 +93,23 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
                     if (payloadLength == 127) {
                         // length 8 bytes (extended payload length)
                         payloadLength = 0;
-                        state = State.PAYLOAD_LEN_BYTES;
+                        readState = State.PAYLOAD_LEN_BYTES;
                         cursor = 8;
                         break;
                     } else if (payloadLength == 126) {
                         // length 2 bytes (extended payload length)
                         payloadLength = 0;
-                        state = State.PAYLOAD_LEN_BYTES;
+                        readState = State.PAYLOAD_LEN_BYTES;
                         cursor = 2;
                         break;
                     }
-
-                    if (payloadLength > Integer.MAX_VALUE)
+                    //
+                    if (payloadLength > Integer.MAX_VALUE) {
                         throw new UnknownProtocolException("[int-sane!] cannot handle payload lengths larger than " + Integer.MAX_VALUE);
+                    }
                     //
                     if (frame.isMasked()) {
-                        state = State.MASK;
+                        readState = State.MASK;
                     } else {
                         // 空有效负载的特殊情况（缓冲区中不再有字节）
                         if (payloadLength == 0) {
@@ -107,7 +118,7 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
                             continue;
                         }
                         resetMask(frame.getMask());
-                        state = State.PAYLOAD;
+                        readState = State.PAYLOAD;
                     }
                     break;
                 }
@@ -117,12 +128,11 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
                     --cursor;
                     payloadLength |= (b & 0xFF) << (8 * cursor);
                     if (cursor == 0) {
-                        //
                         if (payloadLength > Integer.MAX_VALUE)
                             throw new UnknownProtocolException("[int-sane!] cannot handle payload lengths larger than " + Integer.MAX_VALUE);
                         //
                         if (frame.isMasked()) {
-                            state = State.MASK;
+                            readState = State.MASK;
                         } else {
                             // 空有效负载的特殊情况（缓冲区中不再有字节）
                             if (payloadLength == 0) {
@@ -131,12 +141,12 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
                                 continue;
                             }
                             resetMask(frame.getMask());
-                            state = State.PAYLOAD;
+                            readState = State.PAYLOAD;
                         }
                     }
                     break;
                 }
-
+                //
                 case MASK: {
                     byte m[] = new byte[4];
                     frame.setMask(m);
@@ -149,9 +159,9 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
                             continue;
                         }
                         resetMask(frame.getMask());
-                        state = State.PAYLOAD;
+                        readState = State.PAYLOAD;
                     } else {
-                        state = State.MASK_BYTES;
+                        readState = State.MASK_BYTES;
                         cursor = 4;
                     }
                     break;
@@ -169,7 +179,7 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
                             continue;
                         }
                         resetMask(frame.getMask());
-                        state = State.PAYLOAD;
+                        readState = State.PAYLOAD;
                     }
                     break;
                 }
@@ -194,20 +204,21 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
         }
         //
         if (buffer.hasRemaining()) {
-            int bytesSoFar = payload == null ? 0 : payload.position();
-            int bytesExpected = payloadLength - bytesSoFar;
-            int bytesAvailable = buffer.remaining();
-            int windowBytes = Math.min(bytesAvailable, bytesExpected);
-            int limit = buffer.limit();
+        	//
+			int bytesSoFar = payload == null ? 0 : payload.position();
+			int bytesExpected = payloadLength - bytesSoFar;
+			int bytesAvailable = buffer.remaining();
+			int windowBytes = Math.min(bytesAvailable, bytesExpected);
+			int limit = buffer.limit();
 
-            int newLimit=buffer.position() + windowBytes;
-            if ((newLimit > buffer.capacity()) || (newLimit < 0)){
-                System.out.printf("bytesSoFar:%d;bytesExpected:%d;bytesAvailable:%d;position:%d,limit:%d;capacity:%d\n"
-                        ,bytesSoFar,bytesExpected,bytesAvailable,buffer.position(),buffer.limit(),buffer.capacity());
-            }
-
+			int newLimit = buffer.position() + windowBytes;
+			if ((newLimit > buffer.capacity()) || (newLimit < 0)) {
+				System.out.printf("bytesSoFar:%d;bytesExpected:%d;bytesAvailable:%d;position:%d,limit:%d;capacity:%d\n",
+						bytesSoFar, bytesExpected, bytesAvailable, buffer.position(), buffer.limit(),
+						buffer.capacity());
+			}
             buffer.limit(buffer.position() + windowBytes);
-
+            //
             ByteBuffer window = buffer.slice();
             buffer.limit(limit);
             buffer.position(buffer.position() + window.remaining());
@@ -241,42 +252,42 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
      * 处理 Mask
      */
     private void processMask(ByteBuffer payload) {
-        if (maskBytes == null) {
-            return;
+        if (maskBytes != null) {
+	        int maskInt = this.maskInt;
+	        int start = payload.position();
+	        int end = payload.limit();
+	        int offset = this.maskOffset;
+	        int remaining;
+	        while ((remaining = end - start) > 0) {
+	            if (remaining >= 4 && (offset & 3) == 0) {
+	                payload.putInt(start, payload.getInt(start) ^ maskInt);
+	                start += 4;
+	                offset += 4;
+	            } else {
+	                payload.put(start, (byte) (payload.get(start) ^ maskBytes[offset & 3]));
+	                ++start;
+	                ++offset;
+	            }
+	        }
+	        maskOffset = offset;
         }
-        int maskInt = this.maskInt;
-        int start = payload.position();
-        int end = payload.limit();
-        int offset = this.maskOffset;
-        int remaining;
-        while ((remaining = end - start) > 0) {
-            if (remaining >= 4 && (offset & 3) == 0) {
-                payload.putInt(start, payload.getInt(start) ^ maskInt);
-                start += 4;
-                offset += 4;
-            } else {
-                payload.put(start, (byte) (payload.get(start) ^ maskBytes[offset & 3]));
-                ++start;
-                ++offset;
-            }
-        }
-        maskOffset = offset;
     }
-
     //
     private void resetMask(byte[] mask) {
         this.maskBytes = mask;
         int maskInt = 0;
         if (mask != null) {
-            for (byte maskByte : mask)
+            for (byte maskByte : mask) {
                 maskInt = (maskInt << 8) + (maskByte & 0xFF);
+            }
         }
+        //
         this.maskInt = maskInt;
         this.maskOffset = 0;
     }
-
+    //
     private void reset() {
-        state = State.START;
+        readState = State.START;
         cursor = 0;
         frame = null;
         payload = null;
