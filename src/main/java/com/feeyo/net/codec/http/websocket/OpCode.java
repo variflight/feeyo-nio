@@ -17,6 +17,10 @@ public class OpCode {
 	public static boolean isDataFrame(byte opcode) {
 		return (opcode == TEXT) || (opcode == BINARY);
 	}
+	
+	public static boolean isContinuousFrame(byte opcode) {
+		return opcode == CONTINUATION;
+	}
 
 	public static boolean isKnown(byte opcode) {
 		return (opcode == CONTINUATION) || (opcode == TEXT) || (opcode == BINARY) || (opcode == CLOSE)
