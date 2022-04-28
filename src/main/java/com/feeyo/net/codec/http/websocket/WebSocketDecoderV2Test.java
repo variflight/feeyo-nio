@@ -30,7 +30,7 @@ public class WebSocketDecoderV2Test {
 		frame.setFin(true);
 		frame.setRsv1(true);
 		frame.setRsv2(true);
-		frame.setPayload("helloworld,, xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!!");
+		frame.setPayload("helloworld,, xxxxxxxxxxxxxxxxxxxxxxxxx谢谢谢谢谢谢xxxxxxyyyyyyyyyyyyyyyyyyyxxxxxxxx!!");
 		ByteBuffer buf = webSocketEncoder.encode(frame);
 		//
 		byte[] bb = new byte[buf.position()];

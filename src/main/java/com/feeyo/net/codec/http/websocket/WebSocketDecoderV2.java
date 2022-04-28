@@ -2,298 +2,233 @@ package com.feeyo.net.codec.http.websocket;
 
 import com.feeyo.net.codec.Decoder;
 import com.feeyo.net.codec.UnknownProtocolException;
-import com.feeyo.net.codec.util.CompositeByteArray;
-import com.feeyo.net.nio.util.BufferUtil;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
+	/*
+	 * TODO: 未完成的Buffer
+	 */
+	private ByteBuffer incompletBuffer; 
+	
+	private int maxFrameSize = Integer.MAX_VALUE;	//
+	
+    public void setMaxFrameSize(int maxFrameSize) {
+		this.maxFrameSize = maxFrameSize;
+	}
     //
-    private enum State {
-        START,
-        PAYLOAD_LEN,
-        PAYLOAD_LEN_BYTES,
-        MASK,
-        MASK_BYTES,
-        PAYLOAD
-    }
-    //
-    private CompositeByteArray compositeArray = null;
-    private int readOffset; // 用于标记读取位置
-    private State readState = State.START; // 读取状态
-    //
-    // State specific
-    private int cursor = 0;
-    private Frame frame;     // Frame
-    //
-    // payload specific
-    private ByteBuffer payload;
-    private int payloadLength;
-    //
-    // 掩码，用于掩码算法
-    private byte[] maskBytes;
-    private int maskInt;
-    private int maskOffset;
-    //
-    private void append(byte[] newBytes) {
-        if (newBytes == null) {
-            return;
-        }
-        if (compositeArray == null) {
-            compositeArray = new CompositeByteArray();
-        }
-        compositeArray.add(newBytes);
-        readOffset = 0;
-    }
-
-    @Override
+	@Override
     public List<Frame> decode(byte[] buf) throws UnknownProtocolException {
-    	//
-    	append(buf);
-    	//
-        List<Frame> frames = new ArrayList<>();
-        ByteBuffer buffer = ByteBuffer.wrap(buf);
-        while (buffer.hasRemaining()) {
-        	//
-            switch (readState) {
-                case START: {
-                    // peek at byte
-                    byte b = buffer.get();
-                    boolean fin = ((b & 0x80) != 0);
-                    byte opcode = (byte) (b & 0x0F);
-                    if (!OpCode.isKnown(opcode)) {
-                        throw new UnknownProtocolException("Unknown opcode: " + opcode);
-                    }
-                    //
-                    frame = new Frame(opcode);
-                    frame.setFin(fin);
-                    //
-                    if ((b & 0x70) != 0) {
-                        if ((b & 0x40) != 0) {
-                            frame.setRsv1(true);
-                        }
-                        if ((b & 0x20) != 0) {
-                            frame.setRsv2(true);
-                        }
-                        if ((b & 0x10) != 0) {
-                            frame.setRsv3(true);
-                        }
-                    }
-                    //
-                    readState = State.PAYLOAD_LEN;
-                    break;
-                }
-                //
-                case PAYLOAD_LEN: {
-                    byte b = buffer.get();
-                    frame.setMasked((b & 0x80) != 0);
-                    payloadLength = (byte) (0x7F & b);
-                    if (payloadLength == 127) {
-                        // length 8 bytes (extended payload length)
-                        payloadLength = 0;
-                        readState = State.PAYLOAD_LEN_BYTES;
-                        cursor = 8;
-                        break;
-                    } else if (payloadLength == 126) {
-                        // length 2 bytes (extended payload length)
-                        payloadLength = 0;
-                        readState = State.PAYLOAD_LEN_BYTES;
-                        cursor = 2;
-                        break;
-                    }
-                    //
-                    if (payloadLength > Integer.MAX_VALUE) {
-                        throw new UnknownProtocolException("[int-sane!] cannot handle payload lengths larger than " + Integer.MAX_VALUE);
-                    }
-                    //
-                    if (frame.isMasked()) {
-                        readState = State.MASK;
-                    } else {
-                        // 空有效负载的特殊情况（缓冲区中不再有字节）
-                        if (payloadLength == 0) {
-                            frames.add(frame);
-                            reset();
-                            continue;
-                        }
-                        resetMask(frame.getMask());
-                        readState = State.PAYLOAD;
-                    }
-                    break;
-                }
-                //
-                case PAYLOAD_LEN_BYTES: {
-                    byte b = buffer.get();
-                    --cursor;
-                    payloadLength |= (b & 0xFF) << (8 * cursor);
-                    if (cursor == 0) {
-                        if (payloadLength > Integer.MAX_VALUE)
-                            throw new UnknownProtocolException("[int-sane!] cannot handle payload lengths larger than " + Integer.MAX_VALUE);
-                        //
-                        if (frame.isMasked()) {
-                            readState = State.MASK;
-                        } else {
-                            // 空有效负载的特殊情况（缓冲区中不再有字节）
-                            if (payloadLength == 0) {
-                                frames.add(frame);
-                                reset();
-                                continue;
-                            }
-                            resetMask(frame.getMask());
-                            readState = State.PAYLOAD;
-                        }
-                    }
-                    break;
-                }
-                //
-                case MASK: {
-                    byte m[] = new byte[4];
-                    frame.setMask(m);
-                    if (buffer.remaining() >= 4) {
-                        buffer.get(m, 0, 4);
-                        // 空有效负载的特殊情况（缓冲区中不再有字节）
-                        if (payloadLength == 0) {
-                            frames.add(frame);
-                            reset();
-                            continue;
-                        }
-                        resetMask(frame.getMask());
-                        readState = State.PAYLOAD;
-                    } else {
-                        readState = State.MASK_BYTES;
-                        cursor = 4;
-                    }
-                    break;
-                }
-                //
-                case MASK_BYTES: {
-                    byte b = buffer.get();
-                    frame.getMask()[4 - cursor] = b;
-                    --cursor;
-                    if (cursor == 0) {
-                        // 空有效负载的特殊情况（缓冲区中不再有字节）
-                        if (payloadLength == 0) {
-                            frames.add(frame);
-                            reset();
-                            continue;
-                        }
-                        resetMask(frame.getMask());
-                        readState = State.PAYLOAD;
-                    }
-                    break;
-                }
-                //
-                case PAYLOAD: {
-                    frame.assertValid();
-                    if (parsePayload(buffer)) {
-                        // we have a frame!
-                        frames.add(frame);
-                        reset();
-                    }
-                    break;
-                }
-            }
-        }
-        return frames;
+    	ByteBuffer buffer = ByteBuffer.wrap(buf);
+    	return translateFrame(buffer);
     }
-
-    private boolean parsePayload(ByteBuffer buffer) throws UnknownProtocolException {
-        if (payloadLength == 0) {
-            return true;
-        }
-        //
-        if (buffer.hasRemaining()) {
-        	//
-			int bytesSoFar = payload == null ? 0 : payload.position();
-			int bytesExpected = payloadLength - bytesSoFar;
-			int bytesAvailable = buffer.remaining();
-			int windowBytes = Math.min(bytesAvailable, bytesExpected);
-			int limit = buffer.limit();
-
-			int newLimit = buffer.position() + windowBytes;
-			if ((newLimit > buffer.capacity()) || (newLimit < 0)) {
-				System.out.printf("bytesSoFar:%d;bytesExpected:%d;bytesAvailable:%d;position:%d,limit:%d;capacity:%d\n",
-						bytesSoFar, bytesExpected, bytesAvailable, buffer.position(), buffer.limit(),
-						buffer.capacity());
+    //
+    private List<Frame> translateFrame(ByteBuffer buffer) throws UnknownProtocolException {
+    	while(true) {
+            List<Frame> frames = new ArrayList<>();
+            Frame cur;
+    		//
+    		if( incompletBuffer != null ) {
+				// 处理不完整Frame
+				try {
+					buffer.mark();
+					//
+					int availableNextByteCount = buffer.remaining(); // 接收的字节数
+					int expectedNextByteCount = incompletBuffer.remaining(); // 完成不完整Frame所需的字节数
+					if (expectedNextByteCount > availableNextByteCount) {
+						// TODO: 没有接收到足够的字节来完成Frame
+						incompletBuffer.put(buffer.array(), buffer.position(), availableNextByteCount);
+						buffer.position( buffer.position() + availableNextByteCount );
+						return Collections.emptyList();
+					}
+					incompletBuffer.put(buffer.array(), buffer.position(), expectedNextByteCount);
+					buffer.position(buffer.position() + expectedNextByteCount);
+					cur = translateSingleFrame((ByteBuffer) incompletBuffer.duplicate().position(0));
+					frames.add(cur);
+					incompletBuffer = null;
+				} catch (IncompleteException e) {
+					// TODO: 根据提示进行扩展
+					if (e.getPreferredSize() < 0) {
+						throw new IllegalArgumentException("Negative count");
+					}
+					//
+					ByteBuffer extendedBuffer = ByteBuffer.allocate(e.getPreferredSize());
+					assert ( extendedBuffer.limit() > incompletBuffer.limit() );
+					incompletBuffer.rewind();
+					extendedBuffer.put( incompletBuffer );
+					incompletBuffer = extendedBuffer;
+					continue;
+				}
+    		}
+	    	//
+	    	while( buffer.hasRemaining() ) {// Read as much as possible full frames
+				buffer.mark();
+				//
+				try {
+					cur = translateSingleFrame( buffer );
+					frames.add( cur );
+				} catch ( IncompleteException e ) {
+					// remember the incomplete data
+					buffer.reset();
+					//
+					if (e.getPreferredSize() < 0) {
+						throw new IllegalArgumentException("Negative count");
+					}
+					incompletBuffer = ByteBuffer.allocate(e.getPreferredSize());
+					incompletBuffer.put( buffer );
+					break;
+				}
 			}
-            buffer.limit(buffer.position() + windowBytes);
-            //
-            ByteBuffer window = buffer.slice();
-            buffer.limit(limit);
-            buffer.position(buffer.position() + window.remaining());
-            //
-            //
-            // Mask process
-            processMask(window);
-            //
-            if (window.remaining() == payloadLength) {
-                // We have the whole content, no need to copy.
-                frame.setPayload(window);
-                return true;
-            } else {
-                if (payload == null) {
-                    payload = ByteBuffer.allocate(payloadLength);
-                    BufferUtil.clearToFill(payload);
-                }
-                // Copy the payload.
-                payload.put(window);
-                if (payload.position() == payloadLength) {
-                    BufferUtil.flipToFlush(payload, 0);
-                    frame.setPayload(payload);
-                    return true;
-                }
-            }
-        }
-        return false;
+			return frames;
+    	}
+    	//
     }
-
     /*
-     * 处理 Mask
+     * 根据缓冲区的有效负载长度(126或127)对其进行转换
      */
-    private void processMask(ByteBuffer payload) {
-        if (maskBytes != null) {
-	        int maskInt = this.maskInt;
-	        int start = payload.position();
-	        int end = payload.limit();
-	        int offset = this.maskOffset;
-	        int remaining;
-	        while ((remaining = end - start) > 0) {
-	            if (remaining >= 4 && (offset & 3) == 0) {
-	                payload.putInt(start, payload.getInt(start) ^ maskInt);
-	                start += 4;
-	                offset += 4;
-	            } else {
-	                payload.put(start, (byte) (payload.get(start) ^ maskBytes[offset & 3]));
-	                ++start;
-	                ++offset;
-	            }
-	        }
-	        maskOffset = offset;
+    private TranslatedPayloadMetaData translateSingleFramePayloadLength(ByteBuffer buffer, byte optcode, 
+    		int oldPayloadLength, int maxPacketSize, int oldRealPacketSize) throws IncompleteException, UnknownProtocolException {
+    	//
+    	int payloadLength = oldPayloadLength,
+		realPacketSize = oldRealPacketSize;
+    	if( optcode == OpCode.PING || optcode == OpCode.PONG || optcode == OpCode.CLOSE ) {
+            throw new UnknownProtocolException( "Invalid frame: more than 125 octets" );
         }
+		if (payloadLength == 126) {
+            realPacketSize += 2; // additional length 2 bytes
+            translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize);
+            byte[] sizeBytes = new byte[3];
+            sizeBytes[1] = buffer.get();  /* 1+1 */
+            sizeBytes[2] = buffer.get(); /* 1+2 */
+            payloadLength = new BigInteger(sizeBytes).intValue();
+        } else {
+        	// TODO: 127
+            realPacketSize += 8; // additional length 8 bytes
+            translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize);
+            //
+			byte[] sizeBytes = new byte[8];
+			for (int i = 0; i < 8; i++) {
+				sizeBytes[i] = buffer.get(); /* 1+i */
+			}
+			long length = new BigInteger(sizeBytes).longValue();
+            translateSingleFrameCheckLengthLimit(length);
+            payloadLength = ( int ) length;
+        }
+        return new TranslatedPayloadMetaData(payloadLength, realPacketSize);
     }
     //
-    private void resetMask(byte[] mask) {
-        this.maskBytes = mask;
-        int maskInt = 0;
-        if (mask != null) {
-            for (byte maskByte : mask) {
-                maskInt = (maskInt << 8) + (maskByte & 0xFF);
-            }
+	/*
+	 * 检查最大报文大小是否小于实际报文大小
+	 */
+	private void translateSingleFrameCheckPacketSize(int maxPacketSize, int realPacketSize) throws IncompleteException {
+		if (maxPacketSize < realPacketSize) {
+			throw new IncompleteException(realPacketSize);
+		}
+	}
+	/*
+	 * 检查Frame大小是否超过允许的限制
+	 */
+	private void translateSingleFrameCheckLengthLimit(long length) throws UnknownProtocolException {
+		if (length > Integer.MAX_VALUE) {
+			throw new UnknownProtocolException("Payload size is to big...");
+		}
+		if (length > maxFrameSize) {
+			throw new UnknownProtocolException("Payload limit reached, maxFrameSize:" + maxFrameSize);
+		}
+		if (length < 0) {
+			throw new UnknownProtocolException("Payload size is to little...");
+		}
+	}
+    //
+    private Frame translateSingleFrame(ByteBuffer buffer) throws IncompleteException, UnknownProtocolException {
+		int maxPacketSize = buffer.remaining();
+		int realPacketSize = 2;
+		translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize);
+		//
+		byte b1 = buffer.get(); /*0*/  
+		boolean fin = b1 >> 8 != 0;
+		boolean rsv1 = ( b1 & 0x40 ) != 0;
+		boolean rsv2 = ( b1 & 0x20 ) != 0;
+		boolean rsv3 = ( b1 & 0x10 ) != 0;
+		byte b2 = buffer.get(); /*1*/
+		boolean mask = ( b2 & -128 ) != 0;
+		int payloadLength = ( byte ) ( b2 & ~( byte ) 128 );
+		//
+		byte opcode = (byte) (b1 & 0x0F);
+        if (!OpCode.isKnown(opcode)) {
+            throw new UnknownProtocolException("Unknown opcode: " + opcode);
         }
         //
-        this.maskInt = maskInt;
-        this.maskOffset = 0;
+		if (!(payloadLength >= 0 && payloadLength <= 125)) {
+			TranslatedPayloadMetaData payloadData = translateSingleFramePayloadLength(buffer, opcode, payloadLength, maxPacketSize, realPacketSize);
+			payloadLength = payloadData.getPayloadLength();
+			realPacketSize = payloadData.getRealPackageSize();
+		}
+		translateSingleFrameCheckLengthLimit(payloadLength);
+		realPacketSize += ( mask ? 4 : 0 );
+		realPacketSize += payloadLength;
+		translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize);
+		//
+		ByteBuffer payload = ByteBuffer.allocate(payloadLength);
+		if( mask ) {
+			byte[] maskskey = new byte[4];
+			buffer.get( maskskey );
+			for( int i = 0; i < payloadLength; i++ ) {
+				/*payloadstart + i*/
+				payload.put((byte) (buffer.get() ^ maskskey[i % 4]));
+			}
+		} else {
+			payload.put(buffer.array(), buffer.position(), payload.limit());
+			buffer.position(buffer.position() + payload.limit());
+		}
+		//
+		Frame frame = new Frame(opcode);
+		frame.setFin(fin);
+		frame.setRsv1(rsv1);
+		frame.setRsv2(rsv2);
+		frame.setRsv3(rsv3);
+		payload.flip();
+		frame.setPayload(payload);
+		// getExtension().isFrameValid(frame);
+		// getExtension().decodeFrame(frame);
+		// frame.isValid();
+		return frame;
     }
     //
-    private void reset() {
-        readState = State.START;
-        cursor = 0;
-        frame = null;
-        payload = null;
-        payloadLength = 0;
-        maskBytes = null;
-        maskInt = 0;
-        maskOffset = 0;
+    ///
+    private static class IncompleteException extends Exception {
+		private static final long serialVersionUID = 8422501308558732332L;
+		private final int preferredSize;
+		//
+    	public IncompleteException( int preferredSize ) {
+    		this.preferredSize = preferredSize;
+    	}
+    	//
+    	public int getPreferredSize() {
+    		return preferredSize;
+    	}
     }
+    //
+    private static class TranslatedPayloadMetaData {
+		private int payloadLength;
+		private int realPackageSize;
+		//
+		TranslatedPayloadMetaData(int newPayloadLength, int newRealPackageSize) {
+			this.payloadLength = newPayloadLength;
+			this.realPackageSize = newRealPackageSize;
+		}
+		//
+		private int getPayloadLength() {
+			return payloadLength;
+		}
+
+		private int getRealPackageSize() {
+			return realPackageSize;
+		}
+	}
+    //
 }
