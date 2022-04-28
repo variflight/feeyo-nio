@@ -130,16 +130,14 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 		}
 	}
 	/*
-	 * 检查Frame大小是否超过允许的限制
+	 * 检查Frame长度是否超过允许的限制
 	 */
 	private void translateSingleFrameCheckLengthLimit(long length) throws UnknownProtocolException {
 		if (length > Integer.MAX_VALUE) {
 			throw new UnknownProtocolException("Payload size is to big...");
-		}
-		if (length > maxFrameSize) {
-			throw new UnknownProtocolException("Payload limit reached, maxFrameSize:" + maxFrameSize);
-		}
-		if (length < 0) {
+		} else if (length > maxFrameSize) {
+			throw new UnknownProtocolException(String.format("Payload limit reached, length:%s  maxFrameSize:%s", length, maxFrameSize));
+		} else if (length < 0) {
 			throw new UnknownProtocolException("Payload size is to little...");
 		}
 	}
@@ -164,14 +162,16 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
         }
         //
 		if (!(payloadLength >= 0 && payloadLength <= 125)) {
-			TranslatedPayloadMetaData payloadData = translateSingleFramePayloadLength(buffer, opcode, payloadLength, maxPacketSize, realPacketSize);
+			TranslatedPayloadMetaData payloadData = translateSingleFramePayloadLength(buffer, opcode, payloadLength,
+					maxPacketSize, realPacketSize);
 			payloadLength = payloadData.getPayloadLength();
 			realPacketSize = payloadData.getRealPackageSize();
 		}
-		translateSingleFrameCheckLengthLimit(payloadLength);
+		translateSingleFrameCheckLengthLimit(payloadLength); // 检查Frame长度
+		//
 		realPacketSize += ( mask ? 4 : 0 );
 		realPacketSize += payloadLength;
-		translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize);
+		translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize); // 检测报文长度
 		//
 		ByteBuffer payload = ByteBuffer.allocate(checkAlloc(payloadLength));
 		if (mask) {
