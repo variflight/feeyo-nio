@@ -25,23 +25,41 @@ public class WebSocketDecoderV2Test {
 		NetConfig systemConfig = new NetConfig(1048576, 4194304);
 		NetSystem.getInstance().setNetConfig(systemConfig);
 		//
-		
-		Frame frame = new Frame(OpCode.BINARY);
-		frame.setFin(true);
-		frame.setRsv1(true);
-		frame.setRsv2(true);
-		frame.setPayload("helloworld,, xxxxxxxxxxxxxxxxxxxxxxxxx谢谢谢谢谢谢xxxxxxyyyyyyyyyyyyyyyyyyyxxxxxxxx!!");
-		ByteBuffer buf = webSocketEncoder.encode(frame);
-		//
-		byte[] bb = new byte[buf.position()];
-		for (int i = 0; i < buf.position(); i++) {
-			bb[i] = buf.get(i);
+		// 多包
+		byte[] allBB = null;
+		for(int i=0; i<10; i++ ) {
+			Frame frame = new Frame(OpCode.BINARY);
+			frame.setFin(true);
+			frame.setRsv1(true);
+			frame.setRsv2(true);
+			frame.setPayload(("##xxxxxxxxxxxxxxx" + i).getBytes());
+			ByteBuffer buf = webSocketEncoder.encode(frame);
+			//
+			byte[] bb = new byte[buf.position()];
+			for (int j = 0; j < buf.position(); j++) {
+				bb[j] = buf.get(j);
+			}
+			//
+			if (allBB == null) {
+				allBB = bb;
+			} else {
+				byte[] new_allBB = new byte[allBB.length + bb.length];
+				System.arraycopy(allBB, 0, new_allBB, 0, allBB.length);
+				System.arraycopy(bb, 0, new_allBB, allBB.length, bb.length);
+				allBB = new_allBB;
+			}
 		}
 		//
-		List<Frame> frameList = webSocketDecoder.decode(bb);
-		for(Frame frame2: frameList) {
-			System.out.println(frame2.getOpCode() + ", " + frame2.isFin() + "," + frame2.isRsv1() + "," + frame2.isRsv2()
-					+ ", " + frame2.getPayloadAsUTF8() + ", " + frame2.getPayloadLength());
+		// 分包
+		
+		for(int z=0; z<allBB.length; z++) {
+			byte[] b0 = new byte[] { allBB[z] };
+			//
+			List<Frame> frameList = webSocketDecoder.decode(b0);
+			for(Frame frame2: frameList) {
+				System.out.println(frame2.getOpCode() + ", " + frame2.isFin() + "," + frame2.isRsv1() + "," + frame2.isRsv2()
+						+ ", " + frame2.getPayloadAsUTF8() + ", " + frame2.getPayloadLength());
+			}
 		}
 	}
 

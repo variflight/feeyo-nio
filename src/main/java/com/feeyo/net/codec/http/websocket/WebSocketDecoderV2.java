@@ -52,34 +52,25 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 					incompletBuffer = null;
 				} catch (IncompleteException e) {
 					// TODO: 根据提示进行扩展
-					if (e.getPreferredSize() < 0) {
-						throw new IllegalArgumentException("Negative count");
-					}
-					//
-					ByteBuffer extendedBuffer = ByteBuffer.allocate(e.getPreferredSize());
-					assert ( extendedBuffer.limit() > incompletBuffer.limit() );
+					ByteBuffer extendedBuffer = ByteBuffer.allocate( checkAlloc(e.getPreferredSize()) );
+					assert (extendedBuffer.limit() > incompletBuffer.limit());
 					incompletBuffer.rewind();
-					extendedBuffer.put( incompletBuffer );
+					extendedBuffer.put(incompletBuffer);
 					incompletBuffer = extendedBuffer;
 					continue;
 				}
     		}
 	    	//
-	    	while( buffer.hasRemaining() ) {// Read as much as possible full frames
+			while (buffer.hasRemaining()) { // TODO：处理尽可能多的完整帧
 				buffer.mark();
-				//
 				try {
-					cur = translateSingleFrame( buffer );
-					frames.add( cur );
-				} catch ( IncompleteException e ) {
-					// remember the incomplete data
+					cur = translateSingleFrame(buffer);
+					frames.add(cur);
+				} catch (IncompleteException e) {
+					// TODO:数据不完整
 					buffer.reset();
-					//
-					if (e.getPreferredSize() < 0) {
-						throw new IllegalArgumentException("Negative count");
-					}
-					incompletBuffer = ByteBuffer.allocate(e.getPreferredSize());
-					incompletBuffer.put( buffer );
+					incompletBuffer = ByteBuffer.allocate( checkAlloc(e.getPreferredSize()) );
+					incompletBuffer.put(buffer);
 					break;
 				}
 			}
@@ -87,6 +78,13 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
     	}
     	//
     }
+    //
+    private int checkAlloc(int byteCount) throws UnknownProtocolException {
+		if( byteCount < 0 )
+			throw new UnknownProtocolException("Negative count");
+		return byteCount;
+	}
+    //
     /*
      * 根据缓冲区的有效负载长度(126或127)对其进行转换
      */
@@ -95,19 +93,21 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
     	//
     	int payloadLength = oldPayloadLength,
 		realPacketSize = oldRealPacketSize;
-    	if( optcode == OpCode.PING || optcode == OpCode.PONG || optcode == OpCode.CLOSE ) {
-            throw new UnknownProtocolException( "Invalid frame: more than 125 octets" );
-        }
+		if (optcode == OpCode.PING || optcode == OpCode.PONG || optcode == OpCode.CLOSE) {
+			throw new UnknownProtocolException("Invalid frame: more than 125 octets");
+		}
+		//
 		if (payloadLength == 126) {
-            realPacketSize += 2; // additional length 2 bytes
+            realPacketSize += 2; // 附加长度 2 bytes
             translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize);
+            //
             byte[] sizeBytes = new byte[3];
-            sizeBytes[1] = buffer.get();  /* 1+1 */
+            sizeBytes[1] = buffer.get(); /* 1+1 */
             sizeBytes[2] = buffer.get(); /* 1+2 */
             payloadLength = new BigInteger(sizeBytes).intValue();
         } else {
         	// TODO: 127
-            realPacketSize += 8; // additional length 8 bytes
+            realPacketSize += 8; // 附加长度 8 bytes
             translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize);
             //
 			byte[] sizeBytes = new byte[8];
@@ -116,7 +116,7 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 			}
 			long length = new BigInteger(sizeBytes).longValue();
             translateSingleFrameCheckLengthLimit(length);
-            payloadLength = ( int ) length;
+			payloadLength = (int) length;
         }
         return new TranslatedPayloadMetaData(payloadLength, realPacketSize);
     }
@@ -173,10 +173,10 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 		realPacketSize += payloadLength;
 		translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize);
 		//
-		ByteBuffer payload = ByteBuffer.allocate(payloadLength);
-		if( mask ) {
+		ByteBuffer payload = ByteBuffer.allocate(checkAlloc(payloadLength));
+		if (mask) {
 			byte[] maskskey = new byte[4];
-			buffer.get( maskskey );
+			buffer.get(maskskey);
 			for( int i = 0; i < payloadLength; i++ ) {
 				/*payloadstart + i*/
 				payload.put((byte) (buffer.get() ^ maskskey[i % 4]));
