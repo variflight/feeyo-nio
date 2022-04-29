@@ -6,7 +6,7 @@ import com.feeyo.net.codec.http.websocket.extensions.IExtension;
 
 public class WebSocketEncoderV2 {
 	//
-	private volatile IExtension extension = null;
+	private IExtension extension = null;
 	 //
     public void setExtension(IExtension extension) {
 		this.extension = extension;

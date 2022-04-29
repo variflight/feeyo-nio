@@ -15,8 +15,8 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 	// TODO: 未完成的Buffer
 	private ByteBuffer incompletBuffer; 
 	//
-	private volatile IExtension extension = null;
-	private volatile int maxFrameSize = Integer.MAX_VALUE;	
+	private IExtension extension = null;
+	private int maxFrameSize = Integer.MAX_VALUE;	
 	
     public void setMaxFrameSize(int maxFrameSize) {
 		this.maxFrameSize = maxFrameSize;
