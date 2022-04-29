@@ -19,13 +19,13 @@ public class WebSocketEncoderV2 {
 	// @see https://github.com/netty/netty/blob/4.1/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocket08FrameEncoder.java
 	//
 	public ByteBuffer encode(Frame frame) {
-		if ( frame == null )
+		if ( frame == null ) {
 			return null;
+		}
 		//
 		if (extension != null) {
 			extension.encodeFrame(frame);
 		}
-		
 		//
 		ByteBuffer buffer = null;
 		//
