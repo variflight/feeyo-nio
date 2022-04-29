@@ -13,13 +13,10 @@ public interface IExtension {
 	//
 	boolean acceptProvidedExtensionAsServer(String inputExtensionHeader);
 	boolean acceptProvidedExtensionAsClient(String inputExtensionHeader);
-	//
 	void isFrameValid(Frame inputFrame) throws UnknownProtocolException;
-	//
 	String getProvidedExtensionAsClient();
 	String getProvidedExtensionAsServer();
 	//
 	void reset();
-
 	String toString();
 }

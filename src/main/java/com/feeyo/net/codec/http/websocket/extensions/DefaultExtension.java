@@ -28,7 +28,8 @@ public class DefaultExtension implements IExtension {
 	@Override
 	public void isFrameValid(Frame inputFrame) throws UnknownProtocolException {
 		if (inputFrame.isRsv1() || inputFrame.isRsv2() || inputFrame.isRsv3()) {
-			String msg = String.format("bad rsv RSV1: %s RSV2:%s  RSV3:%s", inputFrame.isRsv1(), inputFrame.isRsv2(), inputFrame.isRsv3());
+			String msg = String.format("bad rsv RSV1: %s RSV2:%s  RSV3:%s", 
+					inputFrame.isRsv1(), inputFrame.isRsv2(), inputFrame.isRsv3());
 			throw new UnknownProtocolException(msg);
 		}
 	}
