@@ -19,9 +19,6 @@ public interface IExtension {
 	String getProvidedExtensionAsClient();
 	String getProvidedExtensionAsServer();
 	//
-	IExtension copyInstance();
-
-	//
 	void reset();
 
 	String toString();

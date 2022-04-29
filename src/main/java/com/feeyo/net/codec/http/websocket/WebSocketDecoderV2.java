@@ -2,6 +2,7 @@ package com.feeyo.net.codec.http.websocket;
 
 import com.feeyo.net.codec.Decoder;
 import com.feeyo.net.codec.UnknownProtocolException;
+import com.feeyo.net.codec.http.websocket.extensions.IExtension;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -10,17 +11,21 @@ import java.util.Collections;
 import java.util.List;
 
 public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
-	/*
-	 * TODO: 未完成的Buffer
-	 */
+	//
+	// TODO: 未完成的Buffer
 	private ByteBuffer incompletBuffer; 
-	
-	private int maxFrameSize = Integer.MAX_VALUE;	//
+	//
+	private volatile IExtension extension = null;
+	private volatile int maxFrameSize = Integer.MAX_VALUE;	
 	
     public void setMaxFrameSize(int maxFrameSize) {
 		this.maxFrameSize = maxFrameSize;
 	}
     //
+    public void setExtension(IExtension extension) {
+		this.extension = extension;
+	}
+	//
 	@Override
     public List<Frame> decode(byte[] buf) throws UnknownProtocolException {
     	ByteBuffer buffer = ByteBuffer.wrap(buf);
@@ -76,7 +81,6 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 			}
 			return frames;
     	}
-    	//
     }
     //
     private int checkAlloc(int byteCount) throws UnknownProtocolException {
@@ -88,15 +92,15 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
     /*
      * 根据缓冲区的有效负载长度(126或127)对其进行转换
      */
-    private TranslatedPayloadMetaData translateSingleFramePayloadLength(ByteBuffer buffer, byte optcode, 
-    		int oldPayloadLength, int maxPacketSize, int oldRealPacketSize) throws IncompleteException, UnknownProtocolException {
-    	//
+	private TranslatedPayloadMetaData translateSingleFramePayloadLength(ByteBuffer buffer, byte optcode,
+			int oldPayloadLength, int maxPacketSize, int oldRealPacketSize)
+			throws IncompleteException, UnknownProtocolException {
     	int payloadLength = oldPayloadLength,
 		realPacketSize = oldRealPacketSize;
 		if (optcode == OpCode.PING || optcode == OpCode.PONG || optcode == OpCode.CLOSE) {
 			throw new UnknownProtocolException("Invalid frame: more than 125 octets");
 		}
-		//
+		// TODO:计算负载的长度
 		if (payloadLength == 126) {
             realPacketSize += 2; // 附加长度 2 bytes
             translateSingleFrameCheckPacketSize(maxPacketSize, realPacketSize);
@@ -193,11 +197,14 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 		frame.setRsv3(rsv3);
 		payload.flip();
 		frame.setPayload(payload);
-		// getExtension().isFrameValid(frame);
-		// getExtension().decodeFrame(frame);
-		// frame.isValid();
+		//
+		if (extension != null) {
+			extension.isFrameValid(frame);
+			extension.decodeFrame(frame);
+		}
 		return frame;
     }
+
     //
     ///
     private static class IncompleteException extends Exception {

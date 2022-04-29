@@ -6,28 +6,30 @@ import com.feeyo.net.codec.http.websocket.Frame;
 public class DefaultExtension implements IExtension {
 	//
 	@Override
-	public void decodeFrame(final Frame inputFrame) throws UnknownProtocolException {
+	public void decodeFrame(Frame inputFrame) throws UnknownProtocolException {
+		//
 	}
 
 	@Override
-	public void encodeFrame(final Frame inputFrame) {
+	public void encodeFrame(Frame inputFrame) {
+		//
 	}
 
 	@Override
-	public boolean acceptProvidedExtensionAsServer(final String inputExtension) {
+	public boolean acceptProvidedExtensionAsServer(String inputExtension) {
 		return true;
 	}
 
 	@Override
-	public boolean acceptProvidedExtensionAsClient(final String inputExtension) {
+	public boolean acceptProvidedExtensionAsClient(String inputExtension) {
 		return true;
 	}
 
 	@Override
-	public void isFrameValid(final Frame inputFrame) throws UnknownProtocolException {
+	public void isFrameValid(Frame inputFrame) throws UnknownProtocolException {
 		if (inputFrame.isRsv1() || inputFrame.isRsv2() || inputFrame.isRsv3()) {
-			throw new UnknownProtocolException("bad rsv RSV1: " + inputFrame.isRsv1() + " RSV2: " + inputFrame.isRsv2()
-					+ " RSV3: " + inputFrame.isRsv3());
+			String msg = String.format("bad rsv RSV1: %s RSV2:%s  RSV3:%s", inputFrame.isRsv1(), inputFrame.isRsv2(), inputFrame.isRsv3());
+			throw new UnknownProtocolException(msg);
 		}
 	}
 
@@ -42,12 +44,8 @@ public class DefaultExtension implements IExtension {
 	}
 
 	@Override
-	public IExtension copyInstance() {
-		return new DefaultExtension();
-	}
-
-	@Override
 	public void reset() {
+		//
 	}
 
 	@Override
@@ -61,7 +59,7 @@ public class DefaultExtension implements IExtension {
 	}
 
 	@Override
-	public boolean equals(final Object o) {
+	public boolean equals(Object o) {
 		return this == o || (o != null && this.getClass() == o.getClass());
 	}
 }

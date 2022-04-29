@@ -2,7 +2,16 @@ package com.feeyo.net.codec.http.websocket;
 
 import java.nio.ByteBuffer;
 
+import com.feeyo.net.codec.http.websocket.extensions.IExtension;
+
 public class WebSocketEncoderV2 {
+	//
+	private volatile IExtension extension = null;
+	 //
+    public void setExtension(IExtension extension) {
+		this.extension = extension;
+	}
+	
 	//
 	// @see https://datatracker.ietf.org/doc/html/rfc6455
 	// @see https://stackoverflow.com/questions/25189006/how-to-frame-websocket-data-in-javascript
@@ -12,6 +21,11 @@ public class WebSocketEncoderV2 {
 	public ByteBuffer encode(Frame frame) {
 		if ( frame == null )
 			return null;
+		//
+		if (extension != null) {
+			extension.encodeFrame(frame);
+		}
+		
 		//
 		ByteBuffer buffer = null;
 		//
