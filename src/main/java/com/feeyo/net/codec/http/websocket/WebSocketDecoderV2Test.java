@@ -48,6 +48,7 @@ public class WebSocketDecoderV2Test {
 						+ ", " + frame2.getPayloadAsUTF8() + ", " + frame2.getPayloadLength());
 			}
 		}
+		
 	}
 
 }
