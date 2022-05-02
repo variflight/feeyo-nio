@@ -40,15 +40,15 @@ public class Frame {
      * <p>
      * 
      * <pre>
-     *   1000_0000 (0x80) = fin
-     *   0100_0000 (0x40) = rsv1
-     *   0010_0000 (0x20) = rsv2
-     *   0001_0000 (0x10) = rsv3
-     *   0000_1111 (0x0F) = opcode
+     *   1000_0000 (0x80) = fin     该消息是否是最后片段
+     *   0100_0000 (0x40) = rsv1	预留位 
+     *   0010_0000 (0x20) = rsv2	预留位 
+     *   0001_0000 (0x10) = rsv3 	预留位 
+     *   0000_1111 (0x0F) = opcode  操作码 
      * </pre>
      */	
     private byte finRsvOp;	
-    private boolean masked = false;
+    private boolean masked = false; // 是否对数据进行掩码处理，客户端发送1，服务端发0
     private byte mask[];
     //
     // The payload data
@@ -62,7 +62,6 @@ public class Frame {
 	public void assertValid() throws UnknownProtocolException {
 		//
 		if (isControlFrame()) {
-			//
 			if (getPayloadLength() > MAX_CONTROL_PAYLOAD) {
 				throw new UnknownProtocolException("Desired payload length [" + getPayloadLength() + "] exceeds maximum payload length [" + MAX_CONTROL_PAYLOAD + "]");
 			}
@@ -173,7 +172,8 @@ public class Frame {
 		this.finRsvOp = (byte) ((finRsvOp & 0x7F) | (fin ? 0x80 : 0x00));
 		return this;
 	}
-
+	//
+	// TODO: 掩码, Server发送Client数据帧不能使用掩码, Client发送Server数据帧必须使用掩码
 	public Frame setMask(byte[] maskingKey) {
 		this.mask = maskingKey;
 		this.masked = (mask != null);

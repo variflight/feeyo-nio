@@ -2,13 +2,13 @@ package com.feeyo.net.codec.http.websocket;
 
 public class OpCode {
 	//
-	public static final byte CONTINUATION = (byte) 0x00;
-	public static final byte TEXT = (byte) 0x01;
-	public static final byte BINARY = (byte) 0x02;
-	public static final byte CLOSE = (byte) 0x08;
-	public static final byte PING = (byte) 0x09;
-	public static final byte PONG = (byte) 0x0A;
-	public static final byte UNDEFINED = (byte) -1;
+	public static final byte CONTINUATION = (byte) 0x00;	// 继续帧
+	public static final byte TEXT = (byte) 0x01; // 文本帧, UTF-8编码的文本数据
+	public static final byte BINARY = (byte) 0x02; // 二进制帧
+	public static final byte CLOSE = (byte) 0x08; // 连接关闭
+	public static final byte PING = (byte) 0x09; // ping
+	public static final byte PONG = (byte) 0x0A; // pong
+	public static final byte UNDEFINED = (byte) -1; //
 
 	public static boolean isControlFrame(byte opcode) {
 		return (opcode >= CLOSE);

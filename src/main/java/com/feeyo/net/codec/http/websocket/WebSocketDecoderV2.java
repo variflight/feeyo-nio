@@ -95,6 +95,7 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 	private TranslatedPayloadMetaData translateSingleFramePayloadLength(ByteBuffer buffer, byte optcode,
 			int oldPayloadLength, int maxPacketSize, int oldRealPacketSize)
 			throws IncompleteException, UnknownProtocolException {
+		//
     	int payloadLength = oldPayloadLength,
 		realPacketSize = oldRealPacketSize;
 		if (optcode == OpCode.PING || optcode == OpCode.PONG || optcode == OpCode.CLOSE) {
@@ -197,6 +198,7 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 		frame.setRsv3(rsv3);
 		payload.flip();
 		frame.setPayload(payload);
+		frame.assertValid();
 		//
 		if (extension != null) {
 			extension.isFrameValid(frame);

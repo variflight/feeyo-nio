@@ -13,14 +13,24 @@ public class WebSocketEncoderV2Test {
 	
 	public static void main(String[] args) throws UnknownProtocolException {
 		//
-		webSocketDecoder.setExtension(new PerMessageDeflateExtension());
-		webSocketEncoder.setExtension(new PerMessageDeflateExtension());
+		PerMessageDeflateExtension extension = new PerMessageDeflateExtension();
+		webSocketDecoder.setExtension(extension);
+		webSocketEncoder.setExtension(extension);
 		//
+		String payloadTxt = "\n";
+		for(int i=0; i<10; i++) {
+			payloadTxt += (i + "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,\n");
+		}
+		//
+		//
+		byte[] maskingKey = {0x11, 0x22, 0x33, 0x44};
 		Frame frame1 = new Frame(OpCode.BINARY);
 		frame1.setFin(true);
 		frame1.setRsv1(false);
 		frame1.setRsv2(false);
-		frame1.setPayload(("1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx9").getBytes());
+		frame1.setMasked(true);
+		frame1.setMask(maskingKey);
+		frame1.setPayload(payloadTxt.getBytes());
 		ByteBuffer buf = webSocketEncoder.encode(frame1);
 		//
 		byte[] bb = new byte[buf.position()];

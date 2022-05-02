@@ -11,6 +11,10 @@ public class WebSocketEncoderV2 {
     public void setExtension(IExtension extension) {
 		this.extension = extension;
 	}
+    //
+    private byte getMaskByte(boolean mask) {
+		return mask ? ( byte ) -128 : 0;
+	}
 	
 	//
 	// @see https://datatracker.ietf.org/doc/html/rfc6455
@@ -29,30 +33,36 @@ public class WebSocketEncoderV2 {
 		//
 		ByteBuffer buffer = null;
 		//
+		boolean isMasked = frame.isMasked();
 		int payloadLength = frame.getPayloadLength();
 		byte b0 = frame.getFinRsvOp(); // (byte) (0x8f & (frame.getOpCode() | 0xf0));
 		if (payloadLength <= 125) {
-			buffer = ByteBuffer.allocate(2 + payloadLength);
+			buffer = ByteBuffer.allocate(2 + (isMasked ? 4 : 0) + payloadLength);
 			buffer.put(b0);
-			buffer.put((byte) payloadLength);
+			buffer.put((byte) (payloadLength | getMaskByte(isMasked)));
 			//
 		} else if (payloadLength <= 0xffff) {
-			buffer = ByteBuffer.allocate(4 + payloadLength);
+			buffer = ByteBuffer.allocate(4 + (isMasked ? 4 : 0) + payloadLength);
 			buffer.put(b0);
-			buffer.put((byte) 126); 
+			buffer.put((byte) (126 | getMaskByte(isMasked)) ); 
 			buffer.put((byte) (payloadLength >>> 8));
 			buffer.put((byte) (payloadLength & 0xff));
 			//
 		} else {
 			/* 0xffff < len <= 2^63 */
-			buffer = ByteBuffer.allocate(10 + payloadLength);
+			buffer = ByteBuffer.allocate(10 + (isMasked ? 4 : 0) + payloadLength);
 			buffer.put(b0);
-			buffer.put((byte) 127);
+			buffer.put((byte) (127 | getMaskByte(isMasked)) );
 			buffer.putLong(payloadLength);
 		}
+		// 
+		if (isMasked) {
+			buffer.put(frame.getMask());
+		}
 		//
+		ByteBuffer payload = frame.getPayload();
 		for (int i = 0; i < frame.getPayloadLength(); i++) {
-			buffer.put(frame.getPayload().get(i));
+			buffer.put( isMasked ? (byte)(payload.get(i) ^ frame.getMask()[i % 4]) : payload.get(i) );
 		}
 		return buffer;
 	}
