@@ -1,7 +1,10 @@
 package com.feeyo.net.codec.http.websocket;
 
+/*
+ * https://www.rfc-editor.org/rfc/rfc6455.html#section-5.4
+ * https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers
+ */
 public class OpCode {
-	//
 	public static final byte CONTINUATION = (byte) 0x00;	// 继续帧
 	public static final byte TEXT = (byte) 0x01; // 文本帧, UTF-8编码的文本数据
 	public static final byte BINARY = (byte) 0x02; // 二进制帧

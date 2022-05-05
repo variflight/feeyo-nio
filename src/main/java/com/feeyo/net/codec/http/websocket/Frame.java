@@ -173,7 +173,7 @@ public class Frame {
 		return this;
 	}
 	//
-	// TODO: 掩码, Server发送Client数据帧不能使用掩码, Client发送Server数据帧必须使用掩码
+	// TODO: 从服务端向客户端发送，不需要对数据进行掩码操作
 	public Frame setMask(byte[] maskingKey) {
 		this.mask = maskingKey;
 		this.masked = (mask != null);

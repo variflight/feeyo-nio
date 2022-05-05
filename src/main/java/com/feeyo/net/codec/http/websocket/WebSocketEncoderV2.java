@@ -21,6 +21,7 @@ public class WebSocketEncoderV2 {
 	// @see https://stackoverflow.com/questions/25189006/how-to-frame-websocket-data-in-javascript
 	// @see https://stackoverflow.com/questions/43715746/how-to-encode-binary-data-over-65536-bytes-to-websocket-frame-on-c
 	// @see https://github.com/netty/netty/blob/4.1/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocket08FrameEncoder.java
+    // @see https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers
 	//
 	public ByteBuffer encode(Frame frame) {
 		if ( frame == null ) {
@@ -62,9 +63,9 @@ public class WebSocketEncoderV2 {
 		//
 		ByteBuffer payload = frame.getPayload();
 		for (int i = 0; i < frame.getPayloadLength(); i++) {
+			// Reading and Unmasking the Data
 			buffer.put( isMasked ? (byte)(payload.get(i) ^ frame.getMask()[i % 4]) : payload.get(i) );
 		}
 		return buffer;
 	}
-
 }
