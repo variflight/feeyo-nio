@@ -94,9 +94,8 @@ public class PerMessageDeflateExtension extends CompressionExtension {
 
     @Override
     public synchronized void encodeFrame(Frame inputFrame) {
-        // 只压缩 DataFrame
         if(!(inputFrame.isDataFrame())) {
-            return;
+            return; // 只压缩 DataFrame
         }
         //
         // 设置第一帧的RSV1 bit
