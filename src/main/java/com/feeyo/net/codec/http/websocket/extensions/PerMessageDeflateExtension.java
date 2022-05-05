@@ -43,15 +43,19 @@ public class PerMessageDeflateExtension extends CompressionExtension {
         See, https://tools.ietf.org/html/rfc7692#section-7.2.2
      */
     @Override
-    public void decodeFrame(Frame inputFrame) throws UnknownProtocolException {
-        // 只能解压 DataFrame
-        if(!(inputFrame.isDataFrame()))
+    public synchronized void decodeFrame(Frame inputFrame) throws UnknownProtocolException {
+        if(!(inputFrame.isDataFrame())) {
             return;
-
+        }
+        if (!inputFrame.isRsv1() && inputFrame.getOpCode() != OpCode.CONTINUATION) {
+            return;
+        }
+        //
         // RSV1 bit只在第一帧设置
-        if(inputFrame.getOpCode() == OpCode.CONTINUATION && inputFrame.isRsv1())
+        if(inputFrame.getOpCode() == OpCode.CONTINUATION && inputFrame.isRsv1()) {
             throw new UnknownProtocolException("RSV1 bit can only be set for the first frame.");
-
+        }
+        //
         // 解压缩输出缓冲区
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         try {
@@ -65,18 +69,15 @@ public class PerMessageDeflateExtension extends CompressionExtension {
             if(inputFrame.isFin()) {
                 decompress(TAIL_BYTES, output);
                 // 如果 context takeover 被禁用，inflater 需要重置
-                if(clientNoContextTakeover)
+                if(clientNoContextTakeover) {
                     inflater = new Inflater(true);
+                }
             }
         } catch (DataFormatException e) {
             throw new UnknownProtocolException(e.getMessage());
         }
         //
-        // TODO:解码后必须清除RSV1 bit，以便其他扩展不会抛出异常.
-        if(inputFrame.isRsv1())
-           inputFrame.setRsv1(false);
-        //
-        // 设置 frame payload 为新解压的数据
+        // 设置为新解压的数据
         inputFrame.setPayload(ByteBuffer.wrap(output.toByteArray(), 0, output.size()));
     }
     //
@@ -91,18 +92,19 @@ public class PerMessageDeflateExtension extends CompressionExtension {
     }
 
     @Override
-    public void encodeFrame(Frame inputFrame) {
+    public synchronized void encodeFrame(Frame inputFrame) {
         // 只压缩 DataFrame
         if(!(inputFrame.isDataFrame())) {
             return;
         }
         //
-        // 只需要设置第一帧的RSV1 bit
+        // 设置第一帧的RSV1 bit
         if(!(inputFrame.getOpCode() == OpCode.CONTINUATION)) {
         	inputFrame.setRsv1(true);
         }
         //
-        deflater.setInput(inputFrame.getPayload().array());
+        byte[] payloadData = inputFrame.getPayload().array();
+        deflater.setInput(payloadData);
         // 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
@@ -128,7 +130,7 @@ public class PerMessageDeflateExtension extends CompressionExtension {
             }
         }
         //
-        // frames payload 设置为新的压缩数据
+        // 设置为新的压缩数据
         inputFrame.setPayload(ByteBuffer.wrap(outputBytes, 0, outputLength));
     }
 

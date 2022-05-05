@@ -2,6 +2,7 @@ package com.feeyo.net.codec.http.websocket;
 
 import com.feeyo.net.codec.Decoder;
 import com.feeyo.net.codec.UnknownProtocolException;
+import com.feeyo.net.codec.http.websocket.extensions.DefaultExtension;
 import com.feeyo.net.codec.http.websocket.extensions.IExtension;
 
 import java.math.BigInteger;
@@ -15,7 +16,9 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 	// TODO: 未完成的Buffer
 	private ByteBuffer incompletBuffer; 
 	//
-	private IExtension extension = null;
+	private IExtension negotiatedExtension = new DefaultExtension();
+	private IExtension defaultExtension = new DefaultExtension();
+	//
 	private int maxFrameSize = Integer.MAX_VALUE;	
 	
     public void setMaxFrameSize(int maxFrameSize) {
@@ -23,7 +26,11 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 	}
     //
     public void setExtension(IExtension extension) {
-		this.extension = extension;
+		this.negotiatedExtension = extension;
+	}
+    //
+    public IExtension getExtension() {
+		return negotiatedExtension;
 	}
 	//
 	@Override
@@ -31,7 +38,7 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
     	ByteBuffer buffer = ByteBuffer.wrap(buf);
     	return translateFrame(buffer);
     }
-    //
+	//
     private List<Frame> translateFrame(ByteBuffer buffer) throws UnknownProtocolException {
     	while(true) {
             List<Frame> frames = new ArrayList<>();
@@ -198,12 +205,25 @@ public class WebSocketDecoderV2 implements Decoder<List<Frame>> {
 		frame.setRsv3(rsv3);
 		payload.flip();
 		frame.setPayload(payload);
-		frame.assertValid();
 		//
-		if (extension != null) {
-			extension.isFrameValid(frame);
-			extension.decodeFrame(frame);
+		IExtension currentDecodingExtension = null;
+		if (frame.getOpCode() != OpCode.CONTINUATION) {
+			// Prioritize the negotiated extension
+			if (frame.isRsv1() || frame.isRsv2() || frame.isRsv3()) {
+				currentDecodingExtension = getExtension();
+			} else {
+				// No encoded message, so we can use the default one
+				currentDecodingExtension = defaultExtension;
+			}
 		}
+		//
+	    if (currentDecodingExtension == null) {
+	      currentDecodingExtension = defaultExtension;
+	    }
+	    currentDecodingExtension.isFrameValid(frame);
+	    currentDecodingExtension.decodeFrame(frame);
+	    //
+	    frame.assertValid();
 		return frame;
     }
 

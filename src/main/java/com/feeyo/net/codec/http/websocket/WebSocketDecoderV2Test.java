@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import com.feeyo.net.codec.UnknownProtocolException;
+import com.feeyo.net.codec.http.websocket.extensions.PerMessageDeflateExtension;
 
 public class WebSocketDecoderV2Test {
 	//
@@ -13,13 +14,16 @@ public class WebSocketDecoderV2Test {
 
 	public static void main(String[] args) throws UnknownProtocolException, IOException {
 		//
+		PerMessageDeflateExtension extension = new PerMessageDeflateExtension();
+		extension.acceptProvidedExtensionAsServer("permessage-deflate; client_max_window_bits");
+		webSocketDecoder.setExtension(extension);
+		webSocketEncoder.setExtension(extension);
+		//
 		// TODO: 多包
 		byte[] allBB = null;
 		for(int i=0; i<10; i++ ) {
 			Frame frame = new Frame(OpCode.BINARY);
 			frame.setFin(true);
-			frame.setRsv1(true);
-			frame.setRsv2(true);
 			frame.setPayload(("##xxxxxxxxxxxxxxx" + i).getBytes());
 			ByteBuffer buf = webSocketEncoder.encode(frame);
 			//

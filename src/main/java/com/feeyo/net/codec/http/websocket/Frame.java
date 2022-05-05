@@ -60,7 +60,6 @@ public class Frame {
 	}
     
 	public void assertValid() throws UnknownProtocolException {
-		//
 		if (isControlFrame()) {
 			if (getPayloadLength() > MAX_CONTROL_PAYLOAD) {
 				throw new UnknownProtocolException("Desired payload length [" + getPayloadLength() + "] exceeds maximum payload length [" + MAX_CONTROL_PAYLOAD + "]");
