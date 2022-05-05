@@ -44,9 +44,10 @@ public class PerMessageDeflateExtension extends CompressionExtension {
      */
     @Override
     public synchronized void decodeFrame(Frame inputFrame) throws UnknownProtocolException {
-        if(!(inputFrame.isDataFrame())) {
+        if(!inputFrame.isDataFrame()) {
             return;
         }
+        //
         if (!inputFrame.isRsv1() && inputFrame.getOpCode() != OpCode.CONTINUATION) {
             return;
         }
