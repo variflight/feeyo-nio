@@ -9,7 +9,7 @@ An asynchronous network application framework
   <dependency>
 	<groupId>com.github.variflight</groupId>
 	<artifactId>feeyo-nio</artifactId>
-	<version>0.1.1</version>
+	<version>0.1.5</version>
   </dependency>
 	
 ```
