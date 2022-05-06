@@ -27,7 +27,7 @@ public class WebSocketDecoderV2Test2 {
 		//
 		AtomicInteger counter = new AtomicInteger(0);
 		//
-		int size = 10000;
+		int size = 10 * 10000;
 		CountDownLatch cdl = new CountDownLatch(size);
 		for(int i=0; i<size; i++) {
 			//
