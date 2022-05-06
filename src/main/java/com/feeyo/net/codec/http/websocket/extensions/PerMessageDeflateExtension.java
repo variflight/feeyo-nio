@@ -75,7 +75,7 @@ public class PerMessageDeflateExtension extends CompressionExtension {
                 }
             }
         } catch (DataFormatException e) {
-            throw new UnknownProtocolException(e.getMessage());
+            throw new UnknownProtocolException(e);
         }
         //
         // 设置为新解压的数据
